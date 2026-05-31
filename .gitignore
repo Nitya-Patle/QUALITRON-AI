@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.env
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.env.local
+
+# Uploads
+backend/uploads/
+*.pt
+
+# OS
+.DS_Store
+Thumbs.db
+
+*.exe
+*.msi
+*.zip
+node_modules/
+.venv/
+venv/
