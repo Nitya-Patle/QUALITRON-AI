@@ -3,6 +3,7 @@ services:
   - type: web
     name: qualitron-backend
     env: python
+    plan: free
     rootDir: backend
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
@@ -18,6 +19,7 @@ services:
   - type: web
     name: qualitron-frontend
     env: static
+    plan: free
     rootDir: frontend
     buildCommand: "npm install && npm run build"
     staticPublishPath: "./dist"
