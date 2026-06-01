@@ -28,6 +28,10 @@ class CameraStream:
         if self.running:
             return
         self.cap = cv2.VideoCapture(self.source)
+        if not self.cap.isOpened() and isinstance(self.source, int):
+            # Try DirectShow on Windows if default fails
+            self.cap = cv2.VideoCapture(self.source, cv2.CAP_DSHOW)
+            
         if not self.cap.isOpened():
             raise RuntimeError(f"Cannot open: {self.source}")
         self.running = True
@@ -101,15 +105,25 @@ class CameraStream:
     def _log_defect(self, result: dict):
         try:
             from database.db import get_db
+            from models.schemas import inspection_doc
+            
+            # Ensure result has defect_count for the schema
+            result["defect_count"] = len(result["defects"])
+            
+            # Create a standard inspection record for the live feed
+            doc = inspection_doc(
+                product=f"Live Feed (Cam {self.source})",
+                operator="Automated CCTV",
+                image_filename="live_capture.jpg",
+                result=result,
+                station="Live Monitor"
+            )
+            
             db = get_db()
-            db.live_defects.insert_one({
-                "frame":     self.frame_count,
-                "defects":   result["defects"],
-                "timestamp": time.time(),
-                "source":    str(self.source),
-            })
+            db.inspections.insert_one(doc)
+            
             from utils.alerts import send_defect_alert
-            send_defect_alert(result["defects"])
+            send_defect_alert(result["defects"], product="Live Feed")
         except Exception as e:
             print(f"[Camera] Log error: {e}")
 

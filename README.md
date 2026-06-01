@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # QUALITRON AI — Advanced Quality Control & Monitoring System
 
 ## 🏗️ Project Structure
@@ -105,6 +104,3 @@ Open: http://localhost:3000
 - ✅ Role-based auth (Admin/Manager/Employee)
 - ✅ Predictive maintenance AI
 - ✅ Dark mode UI
-=======
-# QUALITRON-AI
->>>>>>> 30b735b00cd7b2d97e9ad58ec6267fb7856a52ab

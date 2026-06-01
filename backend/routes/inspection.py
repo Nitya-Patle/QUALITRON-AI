@@ -76,6 +76,7 @@ def upload():
         "accuracy":        result["accuracy"],
         "inference_time":  result["inference_time"],
         "annotated_image": result.get("annotated_image"),
+        "measurements":    result.get("measurements"),
         "barcode":         barcode,
     })
 

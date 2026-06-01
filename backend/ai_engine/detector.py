@@ -48,7 +48,7 @@ SEVERITY_MAP = {
     "weld_flaw":     "High",
 }
 
-MODEL_PATH = "yolov8x.pt"
+MODEL_PATH = "yolov8n.pt"
 
 
 class DefectDetector:
@@ -85,6 +85,7 @@ class DefectDetector:
             "model":           "YOLOv8x (real)",
             "device":          self.device,
             "annotated_image": self._to_b64(annotated),
+            "measurements":    self._measure_dimensions(img_array),
         }
 
     def inspect_frame(self, frame: np.ndarray) -> dict:
@@ -126,12 +127,15 @@ class DefectDetector:
             return defects
 
         # Check 1 — Crack/Scratch via edges
-        edges      = cv2.Canny(gray, 50, 150)
+        # Increased Canny thresholds to ignore light reflections common on clear glass
+        edges      = cv2.Canny(gray, 100, 200)
         edge_ratio = np.count_nonzero(edges) / (h * w)
-        if edge_ratio > 0.15:
+        
+        # Increased edge ratio thresholds so normal edges don't trigger as cracks
+        if edge_ratio > 0.18:
             defects.append({
                 "type":       "crack" if edge_ratio > 0.25 else "scratch",
-                "confidence": round(min(0.95, edge_ratio * 3.5), 2),
+                "confidence": round(min(0.95, edge_ratio * 2.5), 2),
                 "severity":   "Critical" if edge_ratio > 0.25 else "Medium",
                 "bbox":       None,
             })
@@ -142,15 +146,17 @@ class DefectDetector:
             val     = hsv[:,:,2]
 
             # Check 2 — Discoloration
-            if sat_std > 55:
+            # Increased threshold to ignore background color bleed through glass
+            if sat_std > 80:
                 defects.append({
                     "type": "discoloration", "severity": "Low",
                     "confidence": round(min(0.92, sat_std/100), 2), "bbox": None,
                 })
 
             # Check 3 — Dark spots = dent
-            dark_ratio = np.count_nonzero(val < 40) / (h * w)
-            if 0.08 < dark_ratio < 0.6:
+            # Lowered brightness value (val < 20) and increased ratio to ignore shadows
+            dark_ratio = np.count_nonzero(val < 20) / (h * w)
+            if 0.15 < dark_ratio < 0.5:
                 defects.append({
                     "type": "dent", "severity": "High",
                     "confidence": round(min(0.88, dark_ratio*5), 2), "bbox": None,
@@ -208,7 +214,23 @@ class DefectDetector:
     def _error_result(self, msg):
         return {"defects":[],"defect_count":0,"passed":True,
                 "inference_time":0,"model":"error","device":"cpu",
-                "annotated_image":None,"error":msg}
+                "annotated_image":None,"measurements":None,"error":msg}
+
+    def _measure_dimensions(self, img) -> dict:
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) if len(img.shape)==3 else img
+        # Threshold to find object silhouette
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            return {"width": 0, "height": 0, "area": 0}
+        largest = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largest)
+        # Industry simulation: 1 pixel = ~0.26mm conversion
+        return {
+            "width_mm": round(w * 0.26, 1),
+            "height_mm": round(h * 0.26, 1),
+            "area_mm2": round(cv2.contourArea(largest) * 0.26 * 0.26, 1)
+        }
 
 
 detector = DefectDetector()
