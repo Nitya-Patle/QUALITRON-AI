@@ -13,11 +13,13 @@ import os
 from PIL import Image
 
 try:
+    if os.getenv("RENDER") == "true":
+        raise ImportError("Disabled on Render to save RAM")
     from ultralytics import YOLO
     YOLO_OK = True
 except ImportError:
     YOLO_OK = False
-    print("[AI] ultralytics not installed — run: pip install ultralytics")
+    print("[AI] ultralytics disabled/missing — using pure CV2")
 
 OBJECT_DEFECT_RULES = {
     "bottle":      ["crack", "chip", "scratch", "discoloration"],
@@ -70,11 +72,17 @@ class DefectDetector:
     def inspect_image(self, image_bytes: bytes) -> dict:
         start     = time.time()
         img_array = self._bytes_to_array(image_bytes)
-        if self.model is None:
-            return self._error_result("Model not loaded")
-        results = self.model.predict(
-            source=img_array, conf=0.35, iou=0.45, imgsz=640, verbose=False)
-        defects   = self._analyze_defects(img_array, results)
+        
+        if self.model is not None:
+            results = self.model.predict(
+                source=img_array, conf=0.35, iou=0.45, imgsz=640, verbose=False)
+            defects   = self._analyze_defects(img_array, results)
+            model_name = "YOLOv8x (real)"
+        else:
+            results = []
+            defects = self._image_quality_check(img_array, None)
+            model_name = "CV2 Analytics (Cloud)"
+
         elapsed   = round(time.time() - start, 3)
         annotated = self._annotate(img_array.copy(), results, defects)
         return {
@@ -82,8 +90,8 @@ class DefectDetector:
             "defect_count":    len(defects),
             "passed":          len(defects) == 0,
             "inference_time":  elapsed,
-            "model":           "YOLOv8x (real)",
-            "device":          self.device,
+            "model":           model_name,
+            "device":          self.device if self.model else "cpu",
             "annotated_image": self._to_b64(annotated),
             "measurements":    self._measure_dimensions(img_array),
         }
@@ -185,12 +193,13 @@ class DefectDetector:
         return final
 
     def _annotate(self, img, results, defects) -> np.ndarray:
-        for box in results[0].boxes:
-            x1,y1,x2,y2 = [int(v) for v in box.xyxy[0].tolist()]
-            label = self.model.names[int(box.cls[0])]
-            cv2.rectangle(img, (x1,y1), (x2,y2), (0,180,255), 2)
-            cv2.putText(img, f"{label} {float(box.conf[0]):.2f}",
-                        (x1,y1-6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,180,255), 1)
+        if results:
+            for box in results[0].boxes:
+                x1,y1,x2,y2 = [int(v) for v in box.xyxy[0].tolist()]
+                label = self.model.names[int(box.cls[0])]
+                cv2.rectangle(img, (x1,y1), (x2,y2), (0,180,255), 2)
+                cv2.putText(img, f"{label} {float(box.conf[0]):.2f}",
+                            (x1,y1-6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,180,255), 1)
         for d in defects:
             if d.get("bbox"):
                 b = d["bbox"]
