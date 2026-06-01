@@ -13,9 +13,10 @@ import os
 from PIL import Image
 
 try:
-    if os.getenv("RENDER") == "true":
-        raise ImportError("Disabled on Render to save RAM")
     from ultralytics import YOLO
+    import torch
+    # Limit PyTorch to 1 thread to drastically reduce RAM usage on Render free tier (512MB)
+    torch.set_num_threads(1)
     YOLO_OK = True
 except ImportError:
     YOLO_OK = False
@@ -74,10 +75,11 @@ class DefectDetector:
         img_array = self._bytes_to_array(image_bytes)
         
         if self.model is not None:
+            # Run YOLO with half precision to save even more RAM
             results = self.model.predict(
-                source=img_array, conf=0.35, iou=0.45, imgsz=640, verbose=False)
+                source=img_array, conf=0.35, iou=0.45, imgsz=640, verbose=False, half=False)
             defects   = self._analyze_defects(img_array, results)
-            model_name = "YOLOv8x (real)"
+            model_name = "YOLOv8n (Real)"
         else:
             results = []
             defects = self._image_quality_check(img_array, None)
