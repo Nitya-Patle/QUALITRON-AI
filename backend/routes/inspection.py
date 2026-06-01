@@ -75,6 +75,7 @@ def upload():
         "defects":         result["defects"],
         "accuracy":        result["accuracy"],
         "inference_time":  result["inference_time"],
+        "model":           result.get("model", "CV2 Analytics (Cloud)"),
         "annotated_image": result.get("annotated_image"),
         "measurements":    result.get("measurements"),
         "barcode":         barcode,

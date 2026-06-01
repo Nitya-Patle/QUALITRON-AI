@@ -170,14 +170,7 @@ class DefectDetector:
                     "confidence": round(min(0.88, dark_ratio*5), 2), "bbox": None,
                 })
 
-        # Check 4 — Blur
-        if float(cv2.Laplacian(gray, cv2.CV_64F).var()) < 80:
-            defects.append({
-                "type": "surface_blur", "severity": "Low",
-                "confidence": 0.75, "bbox": None,
-            })
-
-        # Check 5 — Stain
+        # Check 4 — Stain
         if float(np.std(gray)) > 70 and float(np.mean(gray)) < 180:
             defects.append({
                 "type": "stain", "severity": "Low",
