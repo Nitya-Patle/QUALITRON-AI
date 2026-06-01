@@ -1,0 +1,26 @@
+services:
+  # ── Python Flask Backend ──
+  - type: web
+    name: qualitron-backend
+    env: python
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB
+        value: qualitron_ai_prod
+      - key: JWT_SECRET_KEY
+        generateValue: true
+
+  # ── React Vite Frontend ──
+  - type: web
+    name: qualitron-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: "./dist"
+    envVars:
+      - key: VITE_API_URL
+        value: "https://qualitron-backend.onrender.com/api" # Render uses this exact naming scheme by default based on the service name
