@@ -44,7 +44,7 @@ def send_email_alert(defects, product="Unknown"):
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
             s.starttls(); s.login(SMTP_USER, SMTP_PASS)
             s.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
-        print(f"[Alert] Email sent → {ALERT_EMAIL}")
+        print(f"[Alert] Email sent -> {ALERT_EMAIL}")
     except Exception as e:
         print(f"[Alert] Email error: {e}")
 
@@ -56,7 +56,7 @@ def send_sms_alert(defects, product="Unknown"):
         TwilioClient(TWILIO_SID, TWILIO_TOKEN).messages.create(
             body=f"QUALITRON: {len(defects)} defect(s) on {product}. Check dashboard.",
             from_=TWILIO_FROM, to=ALERT_SMS)
-        print(f"[Alert] SMS sent → {ALERT_SMS}")
+        print(f"[Alert] SMS sent -> {ALERT_SMS}")
     except Exception as e:
         print(f"[Alert] SMS error: {e}")
 
