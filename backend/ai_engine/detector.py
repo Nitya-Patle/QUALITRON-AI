@@ -10,6 +10,7 @@ import time
 import base64
 import io
 import os
+import gc
 from PIL import Image
 
 try:
@@ -73,6 +74,7 @@ class DefectDetector:
     def inspect_image(self, image_bytes: bytes) -> dict:
         start     = time.time()
         img_array = self._bytes_to_array(image_bytes)
+        gc.collect() # Force memory cleanup before YOLO
         
         if self.model is not None:
             # Run YOLO with half precision to save even more RAM
@@ -80,6 +82,8 @@ class DefectDetector:
                 source=img_array, conf=0.35, iou=0.45, imgsz=640, verbose=False, half=False)
             defects   = self._analyze_defects(img_array, results)
             model_name = "YOLOv8n (Real)"
+            del results
+            gc.collect()
         else:
             results = []
             defects = self._image_quality_check(img_array, None)
@@ -208,7 +212,9 @@ class DefectDetector:
 
     @staticmethod
     def _bytes_to_array(b):
-        return np.array(Image.open(io.BytesIO(b)).convert("RGB"))
+        img = Image.open(io.BytesIO(b)).convert("RGB")
+        img.thumbnail((800, 800))
+        return np.array(img)
 
     @staticmethod
     def _to_b64(img):
