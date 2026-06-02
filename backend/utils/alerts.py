@@ -41,7 +41,7 @@ def send_email_alert(defects, product="Unknown"):
     msg["Subject"] = subject; msg["From"] = SMTP_USER; msg["To"] = ALERT_EMAIL
     msg.attach(MIMEText(body, "html"))
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=5) as s:
             s.starttls(); s.login(SMTP_USER, SMTP_PASS)
             s.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
         print(f"[Alert] Email sent -> {ALERT_EMAIL}")
@@ -63,8 +63,10 @@ def send_sms_alert(defects, product="Unknown"):
 
 def send_defect_alert(defects, product="Unknown"):
     if not defects: return
-    send_email_alert(defects, product)
-    send_sms_alert(defects, product)
+    
+    import threading
+    threading.Thread(target=send_email_alert, args=(defects, product)).start()
+    threading.Thread(target=send_sms_alert, args=(defects, product)).start()
     try:
         from database.db import get_db
         from models.schemas import alert_doc
