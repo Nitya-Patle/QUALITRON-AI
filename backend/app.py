@@ -37,6 +37,12 @@ app.register_blueprint(camera_bp,     url_prefix="/api/camera")
 app.register_blueprint(alerts_bp,     url_prefix="/api/alerts")
 
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
+
+
 @app.route("/")
 def health():
     return {"status": "running", "app": "QUALITRON AI v1.0"}
