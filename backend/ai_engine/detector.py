@@ -1,11 +1,10 @@
 """
 AI Defect Detector — YOLOv8 with real defect detection
-Uses pretrained COCO model + custom defect classification
+Uses pretrained COCO model (ONNX) + custom defect classification
 """
 
 import cv2
 import numpy as np
-import torch
 import time
 import base64
 import io
@@ -13,118 +12,109 @@ import os
 import gc
 from PIL import Image
 
-try:
-    from ultralytics import YOLO
-    import torch
-    # Limit PyTorch to 1 thread to drastically reduce RAM usage on Render free tier (512MB)
-    torch.set_num_threads(1)
-    YOLO_OK = True
-except ImportError:
-    YOLO_OK = False
-    print("[AI] ultralytics disabled/missing — using pure CV2")
+MODEL_PATH = "backend/yolov8n.onnx" if os.path.exists("backend/yolov8n.onnx") else "yolov8n.onnx"
 
-OBJECT_DEFECT_RULES = {
-    "bottle":      ["crack", "chip", "scratch", "discoloration"],
-    "cup":         ["crack", "chip", "stain"],
-    "bowl":        ["crack", "chip", "stain"],
-    "vase":        ["crack", "scratch", "discoloration"],
-    "book":        ["tear", "stain", "missing_part"],
-    "cell phone":  ["crack", "scratch", "missing_part"],
-    "laptop":      ["crack", "scratch", "dent"],
-    "keyboard":    ["missing_part", "scratch", "stain"],
-    "chair":       ["crack", "dent", "scratch"],
-    "car":         ["dent", "scratch", "rust"],
-    "person":      [],
-    "default":     ["scratch", "dent", "discoloration"],
+COCO_NAMES = {
+    0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'airplane', 5: 'bus', 6: 'train', 7: 'truck',
+    8: 'boat', 9: 'traffic light', 10: 'fire hydrant', 11: 'stop sign', 12: 'parking meter', 13: 'bench',
+    14: 'bird', 15: 'cat', 16: 'dog', 17: 'horse', 18: 'sheep', 19: 'cow', 20: 'elephant', 21: 'bear',
+    22: 'zebra', 23: 'giraffe', 24: 'backpack', 25: 'umbrella', 26: 'handbag', 27: 'tie', 28: 'suitcase',
+    29: 'frisbee', 30: 'skis', 31: 'snowboard', 32: 'sports ball', 33: 'kite', 34: 'baseball bat', 35: 'baseball glove',
+    36: 'skateboard', 37: 'surfboard', 38: 'tennis racket', 39: 'bottle', 40: 'wine glass', 41: 'cup', 42: 'fork',
+    43: 'knife', 44: 'spoon', 45: 'bowl', 46: 'banana', 47: 'apple', 48: 'sandwich', 49: 'orange', 50: 'broccoli',
+    51: 'carrot', 52: 'hot dog', 53: 'pizza', 54: 'donut', 55: 'cake', 56: 'chair', 57: 'couch', 58: 'potted plant',
+    59: 'bed', 60: 'dining table', 61: 'toilet', 62: 'tv', 63: 'laptop', 64: 'mouse', 65: 'remote', 66: 'keyboard',
+    67: 'cell phone', 68: 'microwave', 69: 'oven', 70: 'toaster', 71: 'sink', 72: 'refrigerator', 73: 'book',
+    74: 'clock', 75: 'vase', 76: 'scissors', 77: 'teddy bear', 78: 'hair drier', 79: 'toothbrush'
 }
-
-SEVERITY_MAP = {
-    "crack":         "Critical",
-    "chip":          "High",
-    "dent":          "High",
-    "scratch":       "Medium",
-    "rust":          "High",
-    "missing_part":  "Critical",
-    "discoloration": "Low",
-    "stain":         "Low",
-    "tear":          "Medium",
-    "surface_blur":  "Low",
-    "weld_flaw":     "High",
-}
-
-MODEL_PATH = "yolov8n.pt"
-
 
 class DefectDetector:
 
     def __init__(self):
-        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        self.model  = None
-        if not YOLO_OK:
-            print("[AI] ultralytics missing")
-            return
-        print(f"[AI] Loading YOLOv8x on {self.device}...")
+        self.device = "cpu"
+        self.net = None
         try:
-            self.model = YOLO(MODEL_PATH)
-            self.model.to(self.device)
-            print("[AI] YOLOv8x loaded ✓ — Real detection active")
+            if os.path.exists(MODEL_PATH):
+                self.net = cv2.dnn.readNetFromONNX(MODEL_PATH)
+                print("[AI] YOLOv8 ONNX loaded ✓ — Memory safe mode active")
+            else:
+                print("[AI] ONNX model missing, running in pure OpenCV mode")
         except Exception as e:
             print(f"[AI] Model load error: {e}")
 
     def inspect_image(self, image_bytes: bytes) -> dict:
         start     = time.time()
         img_array = self._bytes_to_array(image_bytes)
-        gc.collect() # Force memory cleanup before YOLO
+        gc.collect() # Force memory cleanup
         
-        if self.model is not None:
-            # Run YOLO with half precision to save even more RAM
-            results = self.model.predict(
-                source=img_array, conf=0.35, iou=0.45, imgsz=640, verbose=False, half=False)
-            defects   = self._analyze_defects(img_array, results)
-            model_name = "YOLOv8n (Real)"
-            del results
-            gc.collect()
+        objects = []
+        if self.net is not None:
+            objects = self._run_yolo_onnx(img_array)
+            defects = self._analyze_defects(img_array, objects)
+            model_name = "YOLOv8n (ONNX)"
         else:
-            results = []
             defects = self._image_quality_check(img_array, None)
-            model_name = "CV2 Analytics (Cloud)"
+            model_name = "CV2 Analytics"
 
         elapsed   = round(time.time() - start, 3)
-        annotated = self._annotate(img_array.copy(), results, defects)
+        annotated = self._annotate(img_array.copy(), objects, defects)
         return {
             "defects":         defects,
             "defect_count":    len(defects),
             "passed":          len(defects) == 0,
             "inference_time":  elapsed,
             "model":           model_name,
-            "device":          self.device if self.model else "cpu",
+            "device":          self.device,
             "annotated_image": self._to_b64(annotated),
             "measurements":    self._measure_dimensions(img_array),
         }
 
-    def inspect_frame(self, frame: np.ndarray) -> dict:
-        if self.model is None:
-            return {"defects": [], "passed": True}
-        results = self.model.predict(source=frame, conf=0.35, iou=0.45, imgsz=640, verbose=False)
-        defects = self._analyze_defects(frame, results)
-        return {"defects": defects, "passed": len(defects) == 0}
+    def _run_yolo_onnx(self, img) -> list:
+        blob = cv2.dnn.blobFromImage(img, 1/255.0, (640, 640), swapRB=True, crop=False)
+        self.net.setInput(blob)
+        outputs = self.net.forward()[0].T
+        
+        boxes, scores, class_ids = [], [], []
+        x_factor = img.shape[1] / 640.0
+        y_factor = img.shape[0] / 640.0
+        
+        for row in outputs:
+            classes_scores = row[4:]
+            max_score = np.max(classes_scores)
+            if max_score >= 0.35:
+                class_id = np.argmax(classes_scores)
+                xc, yc, w, h = row[0], row[1], row[2], row[3]
+                x1 = int((xc - w/2) * x_factor)
+                y1 = int((yc - h/2) * y_factor)
+                width = int(w * x_factor)
+                height = int(h * y_factor)
+                boxes.append([x1, y1, width, height])
+                scores.append(float(max_score))
+                class_ids.append(class_id)
+                
+        indices = cv2.dnn.NMSBoxes(boxes, scores, 0.35, 0.45)
+        results = []
+        if len(indices) > 0:
+            for i in indices.flatten():
+                x, y, w, h = boxes[i]
+                cid = class_ids[i]
+                results.append({
+                    "label": COCO_NAMES.get(cid, "object"),
+                    "bbox": (max(0,x), max(0,y), min(img.shape[1],x+w), min(img.shape[0],y+h)),
+                    "conf": scores[i]
+                })
+        return results
 
-    def _analyze_defects(self, img, results) -> list:
-        defects          = []
-        detected_objects = []
-        for box in results[0].boxes:
-            cls_id = int(box.cls[0])
-            label  = self.model.names[cls_id]
-            x1, y1, x2, y2 = [int(v) for v in box.xyxy[0].tolist()]
-            detected_objects.append({"label": label, "bbox": (x1, y1, x2, y2)})
-        if not detected_objects:
-            defects += self._image_quality_check(img, None)
-            return defects
-        for obj in detected_objects:
+    def _analyze_defects(self, img, objects) -> list:
+        defects = []
+        if not objects:
+            return self._image_quality_check(img, None)
+        
+        for obj in objects:
             if obj["label"] == "person":
                 continue
             x1, y1, x2, y2 = obj["bbox"]
-            crop = img[max(0,y1):min(img.shape[0],y2), max(0,x1):min(img.shape[1],x2)]
+            crop = img[y1:y2, x1:x2]
             if crop.size == 0:
                 continue
             obj_defects = self._image_quality_check(crop, obj["label"])
@@ -140,12 +130,9 @@ class DefectDetector:
         if h < 10 or w < 10:
             return defects
 
-        # Check 1 — Crack/Scratch via edges
-        # Increased Canny thresholds to ignore light reflections common on clear glass
         edges      = cv2.Canny(gray, 100, 200)
         edge_ratio = np.count_nonzero(edges) / (h * w)
         
-        # Lowered thresholds back to realistic numbers to detect shattered glass (cracks are thin lines)
         if edge_ratio > 0.015:
             defects.append({
                 "type":       "crack" if edge_ratio > 0.035 else "scratch",
@@ -159,16 +146,12 @@ class DefectDetector:
             sat_std = float(np.std(hsv[:,:,1]))
             val     = hsv[:,:,2]
 
-            # Check 2 — Discoloration
-            # Increased threshold to ignore background color bleed through glass
             if sat_std > 80:
                 defects.append({
                     "type": "discoloration", "severity": "Low",
                     "confidence": round(min(0.92, sat_std/100), 2), "bbox": None,
                 })
 
-            # Check 3 — Dark spots = dent
-            # Lowered brightness value (val < 20) and increased ratio to ignore shadows
             dark_ratio = np.count_nonzero(val < 20) / (h * w)
             if 0.15 < dark_ratio < 0.5:
                 defects.append({
@@ -176,34 +159,32 @@ class DefectDetector:
                     "confidence": round(min(0.88, dark_ratio*5), 2), "bbox": None,
                 })
 
-        # Check 4 — Stain
         if float(np.std(gray)) > 70 and float(np.mean(gray)) < 180:
             defects.append({
                 "type": "stain", "severity": "Low",
                 "confidence": 0.72, "bbox": None,
             })
 
-        seen  = set()
-        final = []
+        seen, final = set(), []
         for d in defects:
             if d["type"] not in seen:
                 seen.add(d["type"])
                 final.append(d)
         return final
 
-    def _annotate(self, img, results, defects) -> np.ndarray:
-        if results:
-            for box in results[0].boxes:
-                x1,y1,x2,y2 = [int(v) for v in box.xyxy[0].tolist()]
-                label = self.model.names[int(box.cls[0])]
-                cv2.rectangle(img, (x1,y1), (x2,y2), (0,180,255), 2)
-                cv2.putText(img, f"{label} {float(box.conf[0]):.2f}",
-                            (x1,y1-6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,180,255), 1)
+    def _annotate(self, img, objects, defects) -> np.ndarray:
+        for obj in objects:
+            x1, y1, x2, y2 = obj["bbox"]
+            cv2.rectangle(img, (x1,y1), (x2,y2), (0,180,255), 2)
+            cv2.putText(img, f'{obj["label"]} {obj["conf"]:.2f}',
+                        (x1,y1-6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,180,255), 1)
+                        
         for d in defects:
             if d.get("bbox"):
                 b = d["bbox"]
                 color = (255,60,90) if d["severity"] in ("High","Critical") else (255,200,0)
                 cv2.rectangle(img,(int(b["x1"]),int(b["y1"])),(int(b["x2"]),int(b["y2"])),color,2)
+                
         status = "PASS" if not defects else "FAIL"
         color  = (0,200,80) if status=="PASS" else (255,60,90)
         cv2.rectangle(img, (8,8), (120,36), color, -1)
@@ -221,26 +202,18 @@ class DefectDetector:
         _, buf = cv2.imencode(".jpg", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
         return base64.b64encode(buf).decode("utf-8")
 
-    def _error_result(self, msg):
-        return {"defects":[],"defect_count":0,"passed":True,
-                "inference_time":0,"model":"error","device":"cpu",
-                "annotated_image":None,"measurements":None,"error":msg}
-
     def _measure_dimensions(self, img) -> dict:
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) if len(img.shape)==3 else img
-        # Threshold to find object silhouette
         _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if not contours:
             return {"width": 0, "height": 0, "area": 0}
         largest = max(contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(largest)
-        # Industry simulation: 1 pixel = ~0.26mm conversion
         return {
             "width_mm": round(w * 0.26, 1),
             "height_mm": round(h * 0.26, 1),
             "area_mm2": round(cv2.contourArea(largest) * 0.26 * 0.26, 1)
         }
-
 
 detector = DefectDetector()
