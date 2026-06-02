@@ -141,12 +141,12 @@ class DefectDetector:
         edges      = cv2.Canny(gray, 100, 200)
         edge_ratio = np.count_nonzero(edges) / (h * w)
         
-        # Increased edge ratio thresholds so normal edges don't trigger as cracks
-        if edge_ratio > 0.18:
+        # Lowered thresholds back to realistic numbers to detect shattered glass (cracks are thin lines)
+        if edge_ratio > 0.015:
             defects.append({
-                "type":       "crack" if edge_ratio > 0.25 else "scratch",
-                "confidence": round(min(0.95, edge_ratio * 2.5), 2),
-                "severity":   "Critical" if edge_ratio > 0.25 else "Medium",
+                "type":       "crack" if edge_ratio > 0.035 else "scratch",
+                "confidence": round(min(0.95, edge_ratio * 15), 2),
+                "severity":   "Critical" if edge_ratio > 0.035 else "Medium",
                 "bbox":       None,
             })
 

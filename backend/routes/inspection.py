@@ -73,6 +73,7 @@ def upload():
         "product":         product,
         "defect_count":    result["defect_count"],
         "defects":         result["defects"],
+        "passed":          result["passed"],
         "accuracy":        result["accuracy"],
         "inference_time":  result["inference_time"],
         "model":           result.get("model", "CV2 Analytics (Cloud)"),
