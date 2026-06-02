@@ -18,7 +18,7 @@ def init_db():
         client.admin.command("ping")
         _db = client[name]
         _create_indexes()
-        print(f"[DB] Connected → {name}")
+        print(f"[DB] Connected -> {name}")
     except ConnectionFailure as e:
         print(f"[DB] Connection FAILED: {e}")
         _db = None
@@ -38,4 +38,4 @@ def _create_indexes():
     _db.live_defects.create_index([("timestamp", DESCENDING)])
     _db.alerts.create_index([("timestamp", DESCENDING)])
     _db.iot_readings.create_index([("timestamp", DESCENDING)])
-    print("[DB] Indexes ready ✓")
+    print("[DB] Indexes ready OK")

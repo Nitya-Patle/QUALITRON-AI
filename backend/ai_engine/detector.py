@@ -36,7 +36,7 @@ class DefectDetector:
         try:
             if os.path.exists(MODEL_PATH):
                 self.net = cv2.dnn.readNetFromONNX(MODEL_PATH)
-                print("[AI] YOLOv8 ONNX loaded ✓ — Memory safe mode active")
+                print("[AI] YOLOv8 ONNX loaded OK -- Memory safe mode active")
             else:
                 print("[AI] ONNX model missing, running in pure OpenCV mode")
         except Exception as e:
