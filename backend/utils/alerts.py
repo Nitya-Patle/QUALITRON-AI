@@ -50,7 +50,11 @@ def send_email_alert(defects, product="Unknown"):
             "_captcha": "false"
         }
         
-        response = requests.post(url, json=payload, headers={"Accept": "application/json"})
+        headers = {
+            "Accept": "application/json",
+            "Referer": "https://qualitron-frontend.onrender.com"
+        }
+        response = requests.post(url, json=payload, headers=headers)
         
         if response.status_code == 200:
             print(f"[Alert] Email sent via FormSubmit -> {ALERT_EMAIL}")
