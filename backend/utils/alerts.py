@@ -41,7 +41,7 @@ def send_email_alert(defects, product="Unknown"):
     msg["Subject"] = subject; msg["From"] = SMTP_USER; msg["To"] = ALERT_EMAIL
     msg.attach(MIMEText(body, "html"))
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=5) as s:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as s:
             s.starttls(); s.login(SMTP_USER, SMTP_PASS)
             s.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
         print(f"[Alert] Email sent -> {ALERT_EMAIL}")
