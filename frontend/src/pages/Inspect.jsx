@@ -77,17 +77,11 @@ export default function Inspect() {
           </div>
           {imageUrl && (
             <div style={{position:"relative",marginBottom:16}}>
-              <img src={imageUrl} alt="upload" style={{width:"100%",borderRadius:8,maxHeight:220,objectFit:"cover"}}/>
-              {result && result.defects && (
-                <svg style={{position:"absolute",top:0,left:0,width:"100%",height:"100%"}} viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {result.defects.map((d,i)=>(
-                    <g key={i}>
-                      <rect x="15" y="20" width="25" height="20" fill="none" stroke={C.red} strokeWidth="0.8" strokeDasharray="2,1"/>
-                      <text x="15" y="18" fill={C.red} fontSize="4" fontWeight="bold">{d.type}</text>
-                    </g>
-                  ))}
-                </svg>
-              )}
+              <img 
+                src={result && result.annotated_image ? `data:image/jpeg;base64,${result.annotated_image}` : imageUrl} 
+                alt="upload" 
+                style={{width:"100%",borderRadius:8,maxHeight:220,objectFit:"contain"}}
+              />
             </div>
           )}
           {loading && (
