@@ -45,10 +45,16 @@ def send_email_alert(defects, product="Unknown"):
         payload = {
             "_subject": subject,
             "_replyto": SMTP_USER,
-            "Message": f"Quality Control Alert: {subject}",
-            "Details": body.replace("<br>", "\n").replace("<b>", "").replace("</b>", ""),
+            "_template": "table",
+            "Product": product,
+            "Total Defects": str(len(defects)),
+            "Timestamp": datetime.now().strftime('%d %b %Y %H:%M'),
             "_captcha": "false"
         }
+        
+        # Add each defect as a separate row for the table template
+        for i, d in enumerate(defects):
+            payload[f"Defect {i+1}"] = f"{d['type']} (Confidence: {d['confidence']}, Severity: {d['severity']})"
         
         headers = {
             "Accept": "application/json",
