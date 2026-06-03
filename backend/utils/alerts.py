@@ -44,7 +44,6 @@ def send_email_alert(defects, product="Unknown"):
         url = f"https://formsubmit.co/ajax/{ALERT_EMAIL}"
         payload = {
             "_subject": subject,
-            "_replyto": SMTP_USER,
             "_template": "table",
             "Product": product,
             "Total Defects": str(len(defects)),
