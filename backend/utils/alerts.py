@@ -29,42 +29,55 @@ def send_email_alert(defects, product="Unknown"):
     if not ALERT_EMAIL:
         print("[Alert] Email not configured."); return
     subject = f"QUALITRON ALERT — {len(defects)} defect(s) on {product}"
-    rows    = "".join(f"<tr><td>{d['type']}</td><td>{d['confidence']}</td><td>{d['severity']}</td></tr>"
-                      for d in defects)
-    body    = f"""<h2 style="color:#ff3d5a">Defect Detected — {datetime.now().strftime('%d %b %Y %H:%M')}</h2>
-    <p><b>Product:</b> {product}</p>
-    <p><b>Defects:</b> {len(defects)}</p>
-    <table border="1" cellpadding="6">
-      <tr><th>Type</th><th>Confidence</th><th>Severity</th></tr>{rows}
-    </table>"""
+    # Build beautiful HTML email
+    rows = ""
+    for d in defects:
+        rows += f"<tr><td>{d['type']}</td><td>{d['confidence']}</td><td><b style='color:#ff3d5a'>{d['severity']}</b></td></tr>"
+        
+    html_body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="background-color: #1a1e29; padding: 20px; text-align: center;">
+            <h2 style="color:#ff3d5a; margin: 0; font-size: 24px;">DEFECT DETECTED</h2>
+            <p style="color: #8fa0b5; margin-top: 5px; font-size: 14px;">{datetime.now().strftime('%d %b %Y %H:%M:%S')}</p>
+        </div>
+        <div style="padding: 20px; background-color: #ffffff;">
+            <p style="font-size: 16px; margin-bottom: 5px;"><b>Product:</b> <span style="color:#2a2f3a;">{product}</span></p>
+            <p style="font-size: 16px; margin-top: 0;"><b>Total Defects:</b> <span style="color:#ff3d5a; font-weight:bold;">{len(defects)}</span></p>
+            
+            <table border="1" cellpadding="10" style="border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 15px;">
+                <tr style="background-color: #f1f5f9; color: #334155;">
+                    <th style="text-align: left;">Defect Type</th>
+                    <th style="text-align: left;">Confidence</th>
+                    <th style="text-align: left;">Severity</th>
+                </tr>
+                {rows}
+            </table>
+        </div>
+    </div>
+    """
     try:
         import requests
-        
-        # Bypass Render's SMTP firewall by using a free HTTP-based email API
-        url = f"https://formsubmit.co/ajax/{ALERT_EMAIL}"
-        payload = {
-            "_subject": subject,
-            "_template": "table",
-            "Product": product,
-            "Total Defects": str(len(defects)),
-            "Timestamp": datetime.now().strftime('%d %b %Y %H:%M:%S'),
-            "_captcha": "false"
-        }
-        
-        # Add each defect as a separate row for the table template
-        for i, d in enumerate(defects):
-            payload[f"Defect {i+1}"] = f"{d['type']} (Confidence: {d['confidence']}, Severity: {d['severity']})"
-        
+        RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+        if not RESEND_API_KEY:
+            print("[Alert] RESEND_API_KEY missing."); return
+            
+        url = "https://api.resend.com/emails"
         headers = {
-            "Accept": "application/json",
-            "Referer": "https://qualitron-frontend.onrender.com"
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json"
         }
-        response = requests.post(url, json=payload, headers=headers)
+        payload = {
+            "from": "Qualitron AI <onboarding@resend.dev>",
+            "to": ALERT_EMAIL,
+            "subject": subject,
+            "html": html_body
+        }
         
-        if response.status_code == 200:
-            print(f"[Alert] Email sent via FormSubmit -> {ALERT_EMAIL}")
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code in [200, 201]:
+            print(f"[Alert] Email sent instantly via Resend -> {ALERT_EMAIL}")
         else:
-            print(f"[Alert] FormSubmit error: {response.text}")
+            print(f"[Alert] Resend API error: {response.text}")
     except Exception as e:
         print(f"[Alert] Email error: {e}")
 
