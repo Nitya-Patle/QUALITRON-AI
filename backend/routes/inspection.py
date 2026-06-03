@@ -135,3 +135,25 @@ def delete_record(record_id):
     if res.deleted_count == 0:
         return jsonify({"error": "Not found"}), 404
     return jsonify({"deleted": record_id})
+
+@inspection_bp.route("/test-email", methods=["GET"])
+def test_email():
+    import os, smtplib
+    from email.mime.text import MIMEText
+    try:
+        SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+        SMTP_USER = os.getenv("SMTP_USER", "")
+        SMTP_PASS = os.getenv("SMTP_PASS", "")
+        ALERT_EMAIL = os.getenv("ALERT_EMAIL", "")
+        
+        msg = MIMEText("Test", "html")
+        msg["Subject"] = "Test"; msg["From"] = SMTP_USER; msg["To"] = ALERT_EMAIL
+        
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as s:
+            s.starttls()
+            s.login(SMTP_USER, SMTP_PASS)
+            s.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
+        return jsonify({"message": "Email sent successfully", "host": SMTP_HOST, "user": SMTP_USER})
+    except Exception as e:
+        return jsonify({"error": str(e), "type": type(e).__name__}), 500
