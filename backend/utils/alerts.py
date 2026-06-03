@@ -48,7 +48,7 @@ def send_email_alert(defects, product="Unknown"):
             "_template": "table",
             "Product": product,
             "Total Defects": str(len(defects)),
-            "Timestamp": datetime.now().strftime('%d %b %Y %H:%M'),
+            "Timestamp": datetime.now().strftime('%d %b %Y %H:%M:%S'),
             "_captcha": "false"
         }
         
