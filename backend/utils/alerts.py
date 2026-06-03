@@ -79,8 +79,10 @@ def send_sms_alert(defects, product="Unknown"):
 def send_defect_alert(defects, product="Unknown"):
     if not defects: return
     
+    # Run synchronously to guarantee delivery before Render kills the request thread
+    send_email_alert(defects, product)
+    
     import threading
-    threading.Thread(target=send_email_alert, args=(defects, product)).start()
     threading.Thread(target=send_sms_alert, args=(defects, product)).start()
     try:
         from database.db import get_db
