@@ -30,23 +30,7 @@ export default function Inspect() {
       setProgress(i);
     }
     try {
-      // Try real API first, fall back to demo
-      let res;
-      try { res = await inspectAPI.upload(imageFile, product); }
-      catch {
-        // Demo fallback
-        const n = Math.floor(Math.random()*4);
-        const types=["scratch","crack","dent","discoloration","missing_part","rust"];
-        const sevs=["Low","Medium","High","Critical"];
-        const defects = Array.from({length:n},()=>({
-          type:types[Math.floor(Math.random()*types.length)],
-          confidence:(0.75+Math.random()*0.23).toFixed(2),
-          severity:sevs[Math.floor(Math.random()*4)],
-          bbox:{x1:10,y1:10,x2:80,y2:60}
-        }));
-        res = {defect_count:n,defects,passed:n===0,accuracy:(88+Math.random()*10).toFixed(1),
-          inference_time:0.042,model:"YOLOv8x (demo)",status:n===0?"PASS":"FAIL"};
-      }
+      const res = await inspectAPI.upload(imageFile, product);
       setResult(res);
     } catch(e) { setError(e.message); }
     setLoading(false);
