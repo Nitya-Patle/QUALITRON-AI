@@ -26,7 +26,7 @@ ALERT_SMS    = os.getenv("ALERT_SMS_TO",       "")
 
 
 def send_email_alert(defects, product="Unknown"):
-    if not all([SMTP_USER, SMTP_PASS, ALERT_EMAIL]):
+    if not ALERT_EMAIL:
         print("[Alert] Email not configured."); return
     subject = f"QUALITRON ALERT — {len(defects)} defect(s) on {product}"
     rows    = "".join(f"<tr><td>{d['type']}</td><td>{d['confidence']}</td><td>{d['severity']}</td></tr>"
