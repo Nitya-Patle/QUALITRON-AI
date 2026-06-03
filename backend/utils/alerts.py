@@ -37,14 +37,25 @@ def send_email_alert(defects, product="Unknown"):
     <table border="1" cellpadding="6">
       <tr><th>Type</th><th>Confidence</th><th>Severity</th></tr>{rows}
     </table>"""
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject; msg["From"] = SMTP_USER; msg["To"] = ALERT_EMAIL
-    msg.attach(MIMEText(body, "html"))
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as s:
-            s.starttls(); s.login(SMTP_USER, SMTP_PASS)
-            s.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
-        print(f"[Alert] Email sent -> {ALERT_EMAIL}")
+        import requests
+        
+        # Bypass Render's SMTP firewall by using a free HTTP-based email API
+        url = f"https://formsubmit.co/ajax/{ALERT_EMAIL}"
+        payload = {
+            "_subject": subject,
+            "_replyto": SMTP_USER,
+            "Message": f"Quality Control Alert: {subject}",
+            "Details": body.replace("<br>", "\n").replace("<b>", "").replace("</b>", ""),
+            "_captcha": "false"
+        }
+        
+        response = requests.post(url, json=payload, headers={"Accept": "application/json"})
+        
+        if response.status_code == 200:
+            print(f"[Alert] Email sent via FormSubmit -> {ALERT_EMAIL}")
+        else:
+            print(f"[Alert] FormSubmit error: {response.text}")
     except Exception as e:
         print(f"[Alert] Email error: {e}")
 
