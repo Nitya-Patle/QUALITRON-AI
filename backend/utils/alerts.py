@@ -42,18 +42,19 @@ def send_email_alert(defects, product="Unknown"):
         
         # Bypass Render's SMTP firewall by using a free HTTP-based email API
         url = f"https://formsubmit.co/ajax/{ALERT_EMAIL}"
+        # FormSubmit silently drops emails if standard keys like 'Message' are missing
+        details = f"Product: {product}\nTotal Defects: {len(defects)}\n"
+        details += "-" * 30 + "\n"
+        for i, d in enumerate(defects):
+            details += f"Defect {i+1}: {d['type']} (Confidence: {d['confidence']}, Severity: {d['severity']})\n"
+
         payload = {
             "_subject": subject,
-            "_template": "table",
-            "Product": product,
-            "Total Defects": str(len(defects)),
+            "Message": f"Quality Control Alert for {product}",
+            "Details": details,
             "Timestamp": datetime.now().strftime('%d %b %Y %H:%M:%S'),
             "_captcha": "false"
         }
-        
-        # Add each defect as a separate row for the table template
-        for i, d in enumerate(defects):
-            payload[f"Defect {i+1}"] = f"{d['type']} (Confidence: {d['confidence']}, Severity: {d['severity']})"
         
         headers = {
             "Accept": "application/json",
