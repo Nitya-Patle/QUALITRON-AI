@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { C } from "../theme";
-import { cameraAPI } from "../utils/api";
+import { cameraAPI, inspectAPI } from "../utils/api";
 import SectionTitle from "../components/SectionTitle";
 
 export default function Camera() {
@@ -15,6 +15,7 @@ export default function Camera() {
   const canvasRef = useRef();
   const activeRef = useRef(false);
   const isProcessing = useRef(false);
+  const lastFrameRef = useRef(null);
 
   const captureFrame = async () => {
     if (!activeRef.current || !videoRef.current || !canvasRef.current) return;
@@ -32,6 +33,8 @@ export default function Camera() {
           const ctx = canvas.getContext("2d");
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           const b64 = canvas.toDataURL("image/jpeg", 0.7); // slightly lower quality to save bandwidth
+          
+          lastFrameRef.current = b64; // Store for saving later
           
           const res = await cameraAPI.processFrame(b64);
           
@@ -78,6 +81,7 @@ export default function Camera() {
       setActive(true);
       activeRef.current = true;
       setPassStatus("PASS"); // Initial optimistic state
+      lastFrameRef.current = null;
       
       // Start the recursive capture loop
       intervalRef.current = setTimeout(captureFrame, 1000);
@@ -95,6 +99,18 @@ export default function Camera() {
       videoRef.current.srcObject.getTracks().forEach(t => t.stop());
     }
     setActive(false);
+    
+    // Save the last frame to the database!
+    if (lastFrameRef.current) {
+      fetch(lastFrameRef.current)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], `live_snapshot_${Date.now()}.jpg`, { type: "image/jpeg" });
+          inspectAPI.upload(file, "Live Monitor Feed", "Station-Live")
+            .catch(e => console.error("Error saving live record:", e));
+        });
+    }
+
     setStreamUrl(null);
     setPassStatus(null);
   };
