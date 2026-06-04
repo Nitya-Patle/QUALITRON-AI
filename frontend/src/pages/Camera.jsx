@@ -117,6 +117,26 @@ export default function Camera() {
 
   const [sensors, setSensors] = useState({ temp: "--°C", hum: "--%", vib: "0.0g", spd: "0.0m/s" });
 
+  const takeSnapshot = () => {
+    if (!activeRef.current || !videoRef.current || !canvasRef.current) {
+      alert("Please start the camera first to take a snapshot.");
+      return;
+    }
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (video.videoWidth === 0) return;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const link = document.createElement("a");
+    link.download = `Qualitron_Snapshot_${new Date().getTime()}.jpg`;
+    link.href = canvas.toDataURL("image/jpeg", 1.0);
+    link.click();
+  };
+
   useEffect(() => {
     // Fetch real-world temperature and humidity based on IP
     fetch("https://wttr.in/?format=j1")
@@ -219,7 +239,7 @@ export default function Camera() {
             color:active?C.red:"#000", transition: "all 0.2s"}}>
             {active?"⏹ STOP MONITORING":"▶ START MONITORING"}
           </button>
-          <button style={{padding:12,paddingLeft:20,paddingRight:20,borderRadius:10,
+          <button onClick={takeSnapshot} style={{padding:12,paddingLeft:20,paddingRight:20,borderRadius:10,
             border:`1px solid ${C.border}`,background:C.bg,color:C.text,cursor:"pointer",fontWeight:700}}>
             📸 SNAPSHOT
           </button>
