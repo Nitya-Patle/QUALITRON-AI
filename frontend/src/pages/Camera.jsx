@@ -99,7 +99,35 @@ export default function Camera() {
     setPassStatus(null);
   };
 
-  useEffect(() => () => stopCamera(), []);
+  const [sensors, setSensors] = useState({ temp: "--°C", hum: "--%", vib: "0.0g", spd: "0.0m/s" });
+
+  useEffect(() => {
+    // Fetch real-world temperature and humidity based on IP
+    fetch("https://wttr.in/?format=j1")
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.current_condition && data.current_condition[0]) {
+          const t = data.current_condition[0].temp_C;
+          const h = data.current_condition[0].humidity;
+          setSensors(prev => ({ ...prev, temp: `${t}°C`, hum: `${h}%` }));
+        }
+      })
+      .catch(e => console.error("Could not fetch real weather data", e));
+
+    // Simulate physical machine vibration and speed fluctuations
+    const intv = setInterval(() => {
+      setSensors(prev => ({
+        ...prev,
+        vib: (0.2 + Math.random() * 0.4).toFixed(1) + "g",
+        spd: (1.1 + Math.random() * 0.3).toFixed(1) + "m/s"
+      }));
+    }, 2000);
+    
+    return () => {
+      stopCamera();
+      clearInterval(intv);
+    };
+  }, []);
 
   return (
     <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:20}}>
@@ -211,8 +239,12 @@ export default function Camera() {
         </div>
         <div>
           <div style={{fontSize:11,color:C.muted,fontWeight:700,marginBottom:8}}>IoT SENSORS</div>
-          {[["Temperature","72°C",true],["Vibration","0.4g",true],
-            ["Humidity","65%",false],["Speed","1.2m/s",true]].map(([l,v,ok],i)=>(
+          {[
+            ["Temperature", sensors.temp, true],
+            ["Vibration", sensors.vib, true],
+            ["Humidity", sensors.hum, false],
+            ["Speed", sensors.spd, true]
+          ].map(([l,v,ok],i)=>(
             <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
               <span style={{fontSize:11,color:C.muted}}>{l}</span>
               <span style={{fontSize:12,fontWeight:700,color:ok?C.green:C.yellow}}>{v}</span>
