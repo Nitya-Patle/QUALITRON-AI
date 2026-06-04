@@ -8,9 +8,65 @@ export default function Camera() {
   const [frameCount, setFrameCount] = useState(0);
   const [detections, setDets] = useState([]);
   const [streamUrl, setStreamUrl] = useState(null);
+  const [passStatus, setPassStatus] = useState(null); // "PASS" or "FAIL"
+  
   const intervalRef = useRef();
   const videoRef = useRef();
   const canvasRef = useRef();
+  const activeRef = useRef(false);
+  const isProcessing = useRef(false);
+
+  const captureFrame = async () => {
+    if (!activeRef.current || !videoRef.current || !canvasRef.current) return;
+    
+    if (!isProcessing.current) {
+      isProcessing.current = true;
+      try {
+        setFrameCount(c => c + 1);
+        const canvas = canvasRef.current;
+        const video = videoRef.current;
+        
+        if (video.videoWidth > 0) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const b64 = canvas.toDataURL("image/jpeg", 0.7); // slightly lower quality to save bandwidth
+          
+          const res = await cameraAPI.processFrame(b64);
+          
+          if (res.annotated_image) {
+            setStreamUrl(res.annotated_image);
+          }
+          
+          if (res.defects) {
+            setPassStatus(res.defects.length === 0 ? "PASS" : "FAIL");
+            
+            if (res.defects.length > 0) {
+              setDets(prev => {
+                const newDets = res.defects.map(d => ({
+                  id: Date.now() + Math.random(),
+                  type: d.type,
+                  conf: d.confidence,
+                  time: new Date().toLocaleTimeString()
+                }));
+                return [...newDets, ...prev].slice(0, 15);
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.error("AI inference error:", e);
+      } finally {
+        isProcessing.current = false;
+      }
+    }
+    
+    // Recursively call the next frame after 1.5 seconds, but ONLY if we are still active
+    if (activeRef.current) {
+      intervalRef.current = setTimeout(captureFrame, 1500);
+    }
+  };
 
   const startCamera = async () => {
     try {
@@ -20,39 +76,11 @@ export default function Camera() {
         videoRef.current.play();
       }
       setActive(true);
+      activeRef.current = true;
+      setPassStatus("PASS"); // Initial optimistic state
       
-      intervalRef.current = setInterval(async () => {
-        if (!videoRef.current || !canvasRef.current) return;
-        setFrameCount(c => c + 1);
-        
-        const canvas = canvasRef.current;
-        const video = videoRef.current;
-        if (video.videoWidth === 0) return;
-        
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const b64 = canvas.toDataURL("image/jpeg", 0.8);
-        
-        try {
-          const res = await cameraAPI.processFrame(b64);
-          if (res.annotated_image) {
-            setStreamUrl(res.annotated_image);
-          }
-          if (res.defects && res.defects.length > 0) {
-            setDets(prev => {
-              const newDets = res.defects.map(d => ({
-                id: Date.now() + Math.random(),
-                type: d.type,
-                conf: d.confidence,
-                time: new Date().toLocaleTimeString()
-              }));
-              return [...newDets, ...prev].slice(0, 15);
-            });
-          }
-        } catch (e) { console.error("AI inference error:", e); }
-      }, 3000);
+      // Start the recursive capture loop
+      intervalRef.current = setTimeout(captureFrame, 1000);
       
     } catch (e) {
       console.error(e);
@@ -61,12 +89,14 @@ export default function Camera() {
   };
 
   const stopCamera = () => {
-    clearInterval(intervalRef.current);
+    activeRef.current = false;
+    clearTimeout(intervalRef.current);
     if (videoRef.current && videoRef.current.srcObject) {
       videoRef.current.srcObject.getTracks().forEach(t => t.stop());
     }
     setActive(false);
     setStreamUrl(null);
+    setPassStatus(null);
   };
 
   useEffect(() => () => stopCamera(), []);
@@ -78,10 +108,8 @@ export default function Camera() {
         <div style={{position:"relative",background:"#000",borderRadius:12,overflow:"hidden",
           aspectRatio:"16/9",marginBottom:16,border:`2px solid ${active?C.green:C.border}`}}>
           
-          {/* Hidden Canvas for extracting frames */}
           <canvas ref={canvasRef} style={{ display: "none" }} />
           
-          {/* Real Live Video Feed */}
           <video 
             ref={videoRef} 
             style={{ width: "100%", height: "100%", objectFit: "cover", display: active ? "block" : "none" }} 
@@ -106,6 +134,20 @@ export default function Camera() {
             }}>
               <img src={streamUrl} alt="AI Scan" style={{width:"100%",height:"100%",objectFit:"cover"}} />
               <div style={{position:"absolute",top:0,left:0,background:"rgba(0,0,0,0.7)",color:"white",fontSize:10,padding:"2px 6px",fontWeight:"bold"}}>LATEST AI SCAN</div>
+            </div>
+          )}
+
+          {/* Dynamic PASS / FAIL Badge Overlay */}
+          {active && passStatus && (
+            <div style={{
+              position:"absolute", top: 15, left: "50%", transform: "translateX(-50%)",
+              background: passStatus === "PASS" ? "rgba(0, 180, 80, 0.9)" : "rgba(255, 60, 90, 0.9)",
+              color: "#fff", padding: "8px 24px", borderRadius: 30,
+              fontSize: 24, fontWeight: 900, letterSpacing: 2,
+              boxShadow: "0 4px 15px rgba(0,0,0,0.5)", border: "2px solid #fff",
+              animation: passStatus === "FAIL" ? "pulse 1s infinite" : "none"
+            }}>
+              {passStatus}
             </div>
           )}
 
