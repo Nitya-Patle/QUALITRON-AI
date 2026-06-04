@@ -3,84 +3,125 @@ import { C } from "../theme";
 import { cameraAPI } from "../utils/api";
 import SectionTitle from "../components/SectionTitle";
 
-const DEFECT_TYPES = ["Scratch","Crack","Dent","Discoloration","Missing Part","Rust"];
-
 export default function Camera() {
-  const [active,setActive]       = useState(false);
-  const [frameCount,setFrameCount]= useState(0);
-  const [detections,setDets]     = useState([]);
-  const [streamUrl,setStreamUrl] = useState(null);
+  const [active, setActive] = useState(false);
+  const [frameCount, setFrameCount] = useState(0);
+  const [detections, setDets] = useState([]);
+  const [streamUrl, setStreamUrl] = useState(null);
   const intervalRef = useRef();
+  const videoRef = useRef();
+  const canvasRef = useRef();
 
   const startCamera = async () => {
     try {
-      await cameraAPI.start("cam01", 0);
-      setStreamUrl(cameraAPI.streamUrl("cam01"));
-    } catch { console.log("Backend not connected, demo mode"); }
-    setActive(true);
-    intervalRef.current = setInterval(() => {
-      setFrameCount(c=>c+1);
-      if (Math.random()<0.12) {
-        setDets(prev=>[{id:Date.now(),type:DEFECT_TYPES[Math.floor(Math.random()*DEFECT_TYPES.length)],
-          conf:(0.75+Math.random()*0.23).toFixed(2),time:new Date().toLocaleTimeString()},...prev.slice(0,9)]);
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
       }
-    },1000);
+      setActive(true);
+      
+      intervalRef.current = setInterval(async () => {
+        if (!videoRef.current || !canvasRef.current) return;
+        setFrameCount(c => c + 1);
+        
+        const canvas = canvasRef.current;
+        const video = videoRef.current;
+        if (video.videoWidth === 0) return;
+        
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const b64 = canvas.toDataURL("image/jpeg", 0.8);
+        
+        try {
+          const res = await cameraAPI.processFrame(b64);
+          if (res.annotated_image) {
+            setStreamUrl(res.annotated_image);
+          }
+          if (res.defects && res.defects.length > 0) {
+            setDets(prev => {
+              const newDets = res.defects.map(d => ({
+                id: Date.now() + Math.random(),
+                type: d.type,
+                conf: d.confidence,
+                time: new Date().toLocaleTimeString()
+              }));
+              return [...newDets, ...prev].slice(0, 15);
+            });
+          }
+        } catch (e) { console.error("AI inference error:", e); }
+      }, 3000);
+      
+    } catch (e) {
+      console.error(e);
+      alert("Webcam access denied or unavailable: " + e.message);
+    }
   };
 
-  const stopCamera = async () => {
+  const stopCamera = () => {
     clearInterval(intervalRef.current);
-    try { await cameraAPI.stop("cam01"); } catch {}
-    setActive(false); setStreamUrl(null);
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+    }
+    setActive(false);
+    setStreamUrl(null);
   };
 
-  useEffect(()=>()=>clearInterval(intervalRef.current),[]);
+  useEffect(() => () => stopCamera(), []);
 
   return (
     <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:20}}>
       <div style={{background:C.card,borderRadius:16,padding:20,border:`1px solid ${C.border}`}}>
-        <SectionTitle>Live CCTV Feed — Camera 01</SectionTitle>
+        <SectionTitle>Live CCTV Feed — Local Webcam</SectionTitle>
         <div style={{position:"relative",background:"#000",borderRadius:12,overflow:"hidden",
           aspectRatio:"16/9",marginBottom:16,border:`2px solid ${active?C.green:C.border}`}}>
-          {streamUrl ? (
-            <img src={streamUrl} alt="live" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-          ) : (
-            <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",
-              background:active?"linear-gradient(135deg,#0a1628,#112244,#0a1628)":"#111"}}>
-              {!active ? (
-                <div style={{textAlign:"center",color:C.muted}}>
-                  <div style={{fontSize:56}}>📷</div>
-                  <div style={{marginTop:8}}>Camera Offline</div>
-                </div>
-              ) : (
-                <div style={{width:"100%",height:"100%",position:"relative",
-                  background:"repeating-linear-gradient(0deg,#0001 0,#0001 1px,transparent 1px,transparent 20px),repeating-linear-gradient(90deg,#0001 0,#0001 1px,transparent 1px,transparent 20px),linear-gradient(135deg,#0a1628,#112244)"}}>
-                  <div style={{position:"absolute",top:"35%",left:"30%",width:140,height:90,
-                    border:`2px solid ${C.accent}`,borderRadius:4,opacity:0.6}}/>
-                  {detections.length>0 && (
-                    <div style={{position:"absolute",top:"42%",left:"38%",width:50,height:35,
-                      border:`2px solid ${C.red}`,borderRadius:2}}>
-                      <div style={{position:"absolute",top:-14,left:0,fontSize:9,color:C.red,fontFamily:"monospace",whiteSpace:"nowrap"}}>
-                        {detections[0]?.type}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+          
+          {/* Hidden Canvas for extracting frames */}
+          <canvas ref={canvasRef} style={{ display: "none" }} />
+          
+          {/* Real Live Video Feed */}
+          <video 
+            ref={videoRef} 
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: active ? "block" : "none" }} 
+            muted playsInline 
+          />
+          
+          {!active && (
+            <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",background:"#111"}}>
+              <div style={{textAlign:"center",color:C.muted}}>
+                <div style={{fontSize:56}}>📷</div>
+                <div style={{marginTop:8}}>Camera Offline</div>
+              </div>
             </div>
           )}
+
+          {/* Picture-in-Picture Latest AI Scan */}
+          {active && streamUrl && (
+            <div style={{
+              position:"absolute", bottom: 15, right: 15, width: "30%", aspectRatio: "16/9",
+              border: `2px solid ${C.accent}`, borderRadius: 8, overflow: "hidden",
+              boxShadow: "0 10px 20px rgba(0,0,0,0.5)", background: "#000"
+            }}>
+              <img src={streamUrl} alt="AI Scan" style={{width:"100%",height:"100%",objectFit:"cover"}} />
+              <div style={{position:"absolute",top:0,left:0,background:"rgba(0,0,0,0.7)",color:"white",fontSize:10,padding:"2px 6px",fontWeight:"bold"}}>LATEST AI SCAN</div>
+            </div>
+          )}
+
           {active && (
             <>
               <div style={{position:"absolute",top:10,left:10,background:"#0008",borderRadius:6,
                 padding:"4px 10px",fontSize:11,color:C.green,fontFamily:"monospace",
                 display:"flex",alignItems:"center",gap:6}}>
                 <div style={{width:6,height:6,background:C.red,borderRadius:"50%",animation:"pulse 1s infinite"}}/>
-                REC · {String(Math.floor(frameCount/60)).padStart(2,"0")}:{String(frameCount%60).padStart(2,"0")}
+                REC · {String(Math.floor(frameCount/20)).padStart(2,"0")}:{String((frameCount*3)%60).padStart(2,"0")}
               </div>
               <div style={{position:"absolute",top:10,right:10,background:"#0008",borderRadius:6,
-                padding:"4px 10px",fontSize:11,color:C.accent,fontFamily:"monospace"}}>30 FPS | 1080p</div>
+                padding:"4px 10px",fontSize:11,color:C.accent,fontFamily:"monospace"}}>30 FPS | WEBRTC</div>
               <div style={{position:"absolute",bottom:10,left:10,background:"#0008",borderRadius:6,
                 padding:"4px 10px",fontSize:10,color:C.muted,fontFamily:"monospace"}}>
-                CAM01 | STATION-A | {new Date().toLocaleString()}
+                LOCAL | STATION-A | {new Date().toLocaleString()}
               </div>
             </>
           )}
@@ -89,7 +130,7 @@ export default function Camera() {
           <button onClick={active?stopCamera:startCamera} style={{flex:1,padding:12,borderRadius:10,fontWeight:800,
             cursor:"pointer",border:`1px solid ${active?C.red:C.green}`,
             background:active?`${C.red}22`:`linear-gradient(135deg,${C.green},#00aa55)`,
-            color:active?C.red:"#000"}}>
+            color:active?C.red:"#000", transition: "all 0.2s"}}>
             {active?"⏹ STOP MONITORING":"▶ START MONITORING"}
           </button>
           <button style={{padding:12,paddingLeft:20,paddingRight:20,borderRadius:10,
@@ -103,7 +144,7 @@ export default function Camera() {
         display:"flex",flexDirection:"column",gap:16}}>
         <SectionTitle>Live Detections</SectionTitle>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-          {[["FRAMES",frameCount,C.accent],["ALERTS",detections.length,C.red]].map(([l,v,c],i)=>(
+          {[["SCANS",frameCount,C.accent],["ALERTS",detections.length,C.red]].map(([l,v,c],i)=>(
             <div key={i} style={{background:C.bg,borderRadius:8,padding:12,textAlign:"center"}}>
               <div style={{fontSize:22,fontWeight:800,color:c,fontFamily:"monospace"}}>{v}</div>
               <div style={{fontSize:10,color:C.muted}}>{l}</div>

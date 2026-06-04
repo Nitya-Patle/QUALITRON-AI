@@ -39,6 +39,7 @@ export const cameraAPI = {
   stop:      (id)          => fetch(`${BASE}/camera/stop/${id}`, {method:"POST",headers:hdr()}).then(handle),
   status:    ()            => fetch(`${BASE}/camera/status`,     {headers:hdr()}).then(handle),
   streamUrl: (id)          => `${BASE}/camera/stream/${id}`,
+  processFrame: (b64)      => fetch(`${BASE}/camera/process_frame`,{method:"POST",headers:hdr(),body:JSON.stringify({image:b64})}).then(handle),
 };
 
 export const alertsAPI = {

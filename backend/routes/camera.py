@@ -60,3 +60,31 @@ def status():
             "last_result": s.last_result,
         } for cid, s in _streams.items()
     })
+
+import base64
+from ai_engine.detector import detector
+
+@camera_bp.route("/process_frame", methods=["POST"])
+@jwt_required()
+def process_frame():
+    try:
+        data = request.get_json()
+        if not data or "image" not in data:
+            return jsonify({"error": "No image provided"}), 400
+            
+        # image is a base64 data URI like "data:image/jpeg;base64,/9j/4AAQSk..."
+        base64_data = data["image"]
+        if "," in base64_data:
+            base64_data = base64_data.split(",")[1]
+            
+        image_bytes = base64.b64decode(base64_data)
+        
+        # Run inspection instantly (no DB saves, no emails)
+        result = detector.inspect_image(image_bytes)
+        
+        return jsonify({
+            "defects": result.get("defects", []),
+            "annotated_image": f"data:image/jpeg;base64,{result.get('annotated_image', '')}"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
