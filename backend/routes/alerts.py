@@ -27,6 +27,12 @@ def list_alerts():
     return jsonify({"alerts": alerts, "total": db.alerts.count_documents({})})
 
 
+@alerts_bp.route("/unread-count", methods=["GET"])
+@jwt_required()
+def unread_count():
+    count = get_db().alerts.count_documents({"resolved": False})
+    return jsonify({"count": count})
+
 @alerts_bp.route("/resolve/<alert_id>", methods=["POST"])
 @jwt_required()
 def resolve(alert_id):

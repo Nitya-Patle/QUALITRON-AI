@@ -31,9 +31,9 @@ export default function App() {
 
   const refreshAlerts = () => {
     import("./utils/api").then(({ alertsAPI }) => {
-      alertsAPI.list(1).then(res => {
-        if (res && res.alerts) {
-          setAlerts(res.alerts.filter(a => !a.resolved).length);
+      alertsAPI.unreadCount().then(res => {
+        if (res && res.count !== undefined) {
+          setAlerts(res.count);
         }
       }).catch(() => {});
     });

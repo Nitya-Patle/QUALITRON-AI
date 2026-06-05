@@ -44,6 +44,7 @@ export const cameraAPI = {
 
 export const alertsAPI = {
   list:         (page=1)  => fetch(`${BASE}/alerts/?page=${page}`,{headers:hdr()}).then(handle),
+  unreadCount:  ()        => fetch(`${BASE}/alerts/unread-count`,{headers:hdr()}).then(handle),
   resolve:      (id)      => fetch(`${BASE}/alerts/resolve/${id}`,{method:"POST",headers:hdr()}).then(handle),
   getConfig:    ()        => fetch(`${BASE}/alerts/config`,        {headers:hdr()}).then(handle),
   updateConfig: (cfg)     => fetch(`${BASE}/alerts/config`,{method:"PUT",headers:hdr(),body:JSON.stringify(cfg)}).then(handle),
