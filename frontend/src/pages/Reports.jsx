@@ -6,6 +6,31 @@ import SectionTitle from "../components/SectionTitle";
 export default function Reports() {
   const [days,      setDays]      = useState(7);
   const [generating,setGenerating]= useState(null);
+  const [stats, setStats] = useState({
+    total: 0, passed: 0, defective: 0,
+    rate: 0, accuracy: 0, topDefect: "None"
+  });
+
+  import { useEffect } from "react";
+  import { dashboardAPI } from "../utils/api";
+
+  useEffect(() => {
+    Promise.all([dashboardAPI.kpis(), dashboardAPI.defectDist()])
+      .then(([kpis, dist]) => {
+        let top = "None";
+        if (dist && dist.length > 0) {
+          top = `${dist[0].name} (${dist[0].value} cases)`;
+        }
+        setStats({
+          total: kpis.total || 0,
+          passed: kpis.passed || 0,
+          defective: kpis.defective || 0,
+          rate: kpis.total ? ((kpis.defective / kpis.total) * 100).toFixed(1) : 0,
+          accuracy: kpis.accuracy || 0,
+          topDefect: top
+        });
+      }).catch(() => {});
+  }, []);
 
   const download = async (type) => {
     setGenerating(type);
@@ -41,9 +66,13 @@ export default function Reports() {
     {icon:"📈",label:"KPI Summary",  desc:"Key performance indicators — pass rate, accuracy, OEE",color:C.accent,type:"KPI"},
   ];
 
-  const STATS = [
-    ["Total Inspected","1,247"],["Passed","1,158"],["Defective","89"],
-    ["Defect Rate","7.1%"],["Avg Accuracy","94.3%"],["Top Defect","Scratch (34 cases)"],
+  const DYNAMIC_STATS = [
+    ["Total Inspected", stats.total],
+    ["Passed", stats.passed],
+    ["Defective", stats.defective],
+    ["Defect Rate", `${stats.rate}%`],
+    ["Avg Accuracy", `${stats.accuracy.toFixed(1)}%`],
+    ["Top Defect", stats.topDefect],
   ];
 
   return (
@@ -79,7 +108,7 @@ export default function Reports() {
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
         <div style={{background:`${C.card}`,borderRadius:16,padding:24,border:`1px solid ${C.border}`}}>
           <SectionTitle>Weekly Report Preview</SectionTitle>
-          {STATS.map(([k,v],i)=>(
+          {DYNAMIC_STATS.map(([k,v],i)=>(
             <div key={i} style={{display:"flex",justifyContent:"space-between",
               padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
               <span style={{color:C.muted,fontSize:13}}>{k}</span>
