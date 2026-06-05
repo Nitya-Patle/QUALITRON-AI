@@ -34,7 +34,7 @@ export default function Alerts() {
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
         {[["Critical",counts.CRITICAL||1,C.red,"🚨"],["Warnings",counts.WARNING||2,C.yellow,"⚠️"],
           ["Info",counts.INFO||2,C.accent,"ℹ️"],["Resolved",counts.resolved||18,C.green,"✅"]].map(([l,v,c,icon],i)=>(
-          <div key={i} style={{background:"#141c35",borderRadius:12,padding:16,border:`1px solid ${c}44`,textAlign:"center"}}>
+          <div key={i} style={{background:`${C.card}`,borderRadius:12,padding:16,border:`1px solid ${c}44`,textAlign:"center"}}>
             <div style={{fontSize:24}}>{icon}</div>
             <div style={{fontSize:26,fontWeight:900,color:c,marginTop:4}}>{v}</div>
             <div style={{fontSize:11,color:C.muted}}>{l}</div>
@@ -42,7 +42,7 @@ export default function Alerts() {
         ))}
       </div>
 
-      <div style={{background:"#141c35",borderRadius:16,padding:20,border:"1px solid #1e2d54"}}>
+      <div style={{background:`${C.card}`,borderRadius:16,padding:20,border:`1px solid ${C.border}`}}>
         <SectionTitle>Alert Feed</SectionTitle>
         {alerts.map(a=>{
           const color = TYPE_COLOR[a.type]||C.accent;
@@ -69,14 +69,14 @@ export default function Alerts() {
         })}
       </div>
 
-      <div style={{background:"#141c35",borderRadius:16,padding:20,border:"1px solid #1e2d54"}}>
+      <div style={{background:`${C.card}`,borderRadius:16,padding:20,border:`1px solid ${C.border}`}}>
         <SectionTitle>Notification Configuration</SectionTitle>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
           {[["Email Notifications","quality-team@factory.com","email"],
             ["SMS Alerts","+91-98XXXXXXXX","sms"],
             ["WhatsApp Bot","Not configured","whatsapp"],
             ["Slack Integration","#quality-alerts","slack"]].map(([label,target,key])=>(
-            <div key={key} style={{background:"#0a0e1a",borderRadius:10,padding:14,
+            <div key={key} style={{background:`${C.bg}`,borderRadius:10,padding:14,
               display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontWeight:700,color:C.text,fontSize:13}}>{label}</div>
@@ -84,7 +84,7 @@ export default function Alerts() {
               </div>
               <div onClick={()=>setCfg(c=>({...c,[key]:!c[key]}))}
                 style={{width:44,height:24,borderRadius:12,cursor:"pointer",position:"relative",
-                  background:cfg[key]?C.green:"#1e2d54",transition:"background 0.2s"}}>
+                  background:cfg[key]?C.green:`${C.border}`,transition:"background 0.2s"}}>
                 <div style={{position:"absolute",top:3,left:cfg[key]?22:3,width:18,height:18,
                   borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
               </div>

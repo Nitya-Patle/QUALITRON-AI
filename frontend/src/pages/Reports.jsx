@@ -28,12 +28,12 @@ export default function Reports() {
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
-      <div style={{background:"#141c35",borderRadius:16,padding:20,border:"1px solid #1e2d54",
+      <div style={{background:`${C.card}`,borderRadius:16,padding:20,border:`1px solid ${C.border}`,
         display:"flex",alignItems:"center",gap:16}}>
         <div style={{fontSize:13,color:C.muted,fontWeight:700}}>REPORT PERIOD</div>
         {[7,14,30].map(d=>(
           <div key={d} onClick={()=>setDays(d)} style={{padding:"8px 16px",borderRadius:8,cursor:"pointer",
-            fontWeight:700,fontSize:13,border:`1px solid ${days===d?C.accent:"#1e2d54"}`,
+            fontWeight:700,fontSize:13,border:`1px solid ${days===d?C.accent:`${C.border}`}`,
             background:days===d?`${C.accent}22`:"transparent",color:days===d?C.accent:C.muted}}>
             Last {d} days
           </div>
@@ -42,7 +42,7 @@ export default function Reports() {
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
         {REPORTS.map((r,i)=>(
-          <div key={i} style={{background:"#141c35",borderRadius:16,padding:28,border:"1px solid #1e2d54",textAlign:"center"}}>
+          <div key={i} style={{background:`${C.card}`,borderRadius:16,padding:28,border:`1px solid ${C.border}`,textAlign:"center"}}>
             <div style={{fontSize:52,marginBottom:12}}>{r.icon}</div>
             <div style={{fontWeight:800,color:C.text,marginBottom:8,fontSize:16}}>{r.label}</div>
             <div style={{fontSize:12,color:C.muted,marginBottom:20,lineHeight:1.6}}>{r.desc}</div>
@@ -57,17 +57,17 @@ export default function Reports() {
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
-        <div style={{background:"#141c35",borderRadius:16,padding:24,border:"1px solid #1e2d54"}}>
+        <div style={{background:`${C.card}`,borderRadius:16,padding:24,border:`1px solid ${C.border}`}}>
           <SectionTitle>Weekly Report Preview</SectionTitle>
           {STATS.map(([k,v],i)=>(
             <div key={i} style={{display:"flex",justifyContent:"space-between",
-              padding:"10px 0",borderBottom:"1px solid #1e2d54"}}>
+              padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
               <span style={{color:C.muted,fontSize:13}}>{k}</span>
               <span style={{color:C.text,fontWeight:700,fontSize:13}}>{v}</span>
             </div>
           ))}
         </div>
-        <div style={{background:"#141c35",borderRadius:16,padding:24,border:"1px solid #1e2d54"}}>
+        <div style={{background:`${C.card}`,borderRadius:16,padding:24,border:`1px solid ${C.border}`}}>
           <SectionTitle>Export Options</SectionTitle>
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {[["Date Range Filter","Last 7 / 14 / 30 days","📅"],
@@ -76,7 +76,7 @@ export default function Reports() {
               ["Scheduled Reports","Daily email at 8:00 AM","⏰"],
               ["Cloud Backup","Auto-save to AWS S3","☁️"]].map(([t,d,ic],i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 12px",
-                background:"#0a0e1a",borderRadius:8,border:"1px solid #1e2d54"}}>
+                background:`${C.bg}`,borderRadius:8,border:`1px solid ${C.border}`}}>
                 <span style={{fontSize:20}}>{ic}</span>
                 <div>
                   <div style={{fontWeight:700,color:C.text,fontSize:13}}>{t}</div>

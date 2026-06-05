@@ -5,7 +5,7 @@ import { C, PIE_COLORS } from "../theme";
 import { dashboardAPI } from "../utils/api";
 import SectionTitle from "../components/SectionTitle";
 
-const TT = { contentStyle:{background:"#0f1628",border:"1px solid #1e2d54",borderRadius:8,color:"#e8eeff"} };
+const TT = { contentStyle:{background:`${C.panel}`,border:`1px solid ${C.border}`,borderRadius:8,color:`${C.text}`} };
 
 export default function Analytics() {
   const [dist,  setDist]  = useState([]);
@@ -32,7 +32,7 @@ export default function Analytics() {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
-        <div style={{background:"#141c35",borderRadius:16,padding:20,border:"1px solid #1e2d54"}}>
+        <div style={{background:`${C.card}`,borderRadius:16,padding:20,border:`1px solid ${C.border}`}}>
           <SectionTitle>Defect Frequency Radar</SectionTitle>
           <ResponsiveContainer width="100%" height={260}>
             <RadarChart data={radarData}>
@@ -43,7 +43,7 @@ export default function Analytics() {
             </RadarChart>
           </ResponsiveContainer>
         </div>
-        <div style={{background:"#141c35",borderRadius:16,padding:20,border:"1px solid #1e2d54"}}>
+        <div style={{background:`${C.card}`,borderRadius:16,padding:20,border:`1px solid ${C.border}`}}>
           <SectionTitle>All Defect Types</SectionTitle>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={dist} layout="vertical">
@@ -59,11 +59,11 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div style={{background:"#141c35",borderRadius:16,padding:24,border:"1px solid #1e2d54"}}>
+      <div style={{background:`${C.card}`,borderRadius:16,padding:24,border:`1px solid ${C.border}`}}>
         <SectionTitle>AI Predictive Maintenance Forecast</SectionTitle>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16}}>
           {pred.map((m,i)=>(
-            <div key={i} style={{background:"#0a0e1a",borderRadius:12,padding:16,
+            <div key={i} style={{background:`${C.bg}`,borderRadius:12,padding:16,
               border:`1px solid ${riskColor(m.risk)}44`}}>
               <div style={{fontWeight:700,color:C.text,marginBottom:10,fontSize:13}}>{m.machine}</div>
               <div style={{marginBottom:8}}>
@@ -84,7 +84,7 @@ export default function Analytics() {
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
         {[["OEE Score","84.2%",C.green],["Throughput","247/hr",C.accent],
           ["Defect Rate","6.8%",C.red],["MTBF","1,240 hrs",C.yellow]].map(([l,v,c],i)=>(
-          <div key={i} style={{background:"#141c35",borderRadius:12,padding:16,border:"1px solid #1e2d54",textAlign:"center"}}>
+          <div key={i} style={{background:`${C.card}`,borderRadius:12,padding:16,border:`1px solid ${C.border}`,textAlign:"center"}}>
             <div style={{fontSize:24,fontWeight:900,color:c,fontFamily:"monospace"}}>{v}</div>
             <div style={{fontSize:11,color:C.muted,marginTop:4}}>{l}</div>
           </div>

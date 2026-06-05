@@ -45,19 +45,19 @@ export default function Records() {
         <input value={search} onChange={e=>setSearch(e.target.value)}
           placeholder="🔍 Search by product, ID, or operator..."
           style={{flex:1,minWidth:200,padding:"10px 16px",borderRadius:10,
-            background:"#141c35",border:"1px solid #1e2d54",color:"#e8eeff",fontSize:13,outline:"none"}}/>
+            background:`${C.card}`,border:`1px solid ${C.border}`,color:`${C.text}`,fontSize:13,outline:"none"}}/>
         {["ALL","PASS","FAIL"].map(f=>(
           <div key={f} onClick={()=>setFilter(f)} style={{padding:"10px 16px",borderRadius:10,cursor:"pointer",
-            fontWeight:700,fontSize:13,border:`1px solid ${filter===f?(f==="FAIL"?C.red:f==="PASS"?C.green:C.accent):"#1e2d54"}`,
-            background:filter===f?`${f==="FAIL"?C.red:f==="PASS"?C.green:C.accent}22`:"#141c35",
-            color:filter===f?(f==="FAIL"?C.red:f==="PASS"?C.green:C.accent):"#6b7db3"}}>{f}</div>
+            fontWeight:700,fontSize:13,border:`1px solid ${filter===f?(f==="FAIL"?C.red:f==="PASS"?C.green:C.accent):`${C.border}`}`,
+            background:filter===f?`${f==="FAIL"?C.red:f==="PASS"?C.green:C.accent}22`:`${C.card}`,
+            color:filter===f?(f==="FAIL"?C.red:f==="PASS"?C.green:C.accent):`${C.muted}`}}>{f}</div>
         ))}
-        <div style={{padding:"10px 16px",borderRadius:10,background:"#141c35",border:"1px solid #1e2d54",color:"#6b7db3",fontSize:13}}>
+        <div style={{padding:"10px 16px",borderRadius:10,background:`${C.card}`,border:`1px solid ${C.border}`,color:`${C.muted}`,fontSize:13}}>
           {filtered.length} records
         </div>
       </div>
 
-      <div style={{background:"#141c35",borderRadius:16,padding:20,border:"1px solid #1e2d54",overflowX:"auto"}}>
+      <div style={{background:`${C.card}`,borderRadius:16,padding:20,border:`1px solid ${C.border}`,overflowX:"auto"}}>
         {loading ? (
           <div style={{textAlign:"center",padding:40,color:C.muted}}>Loading records...</div>
         ) : (
@@ -65,7 +65,7 @@ export default function Records() {
             <thead>
               <tr>{["ID","Product","Operator","Station","Status","Defects","Accuracy","Timestamp","Action"].map(h=>(
                 <th key={h} style={{textAlign:"left",padding:"8px 12px",color:C.muted,
-                  fontWeight:700,borderBottom:"1px solid #1e2d54",fontSize:11,letterSpacing:1}}>{h}</th>
+                  fontWeight:700,borderBottom:`1px solid ${C.border}`,fontSize:11,letterSpacing:1}}>{h}</th>
               ))}</tr>
             </thead>
             <tbody>
@@ -73,7 +73,7 @@ export default function Records() {
                 <tr key={i}
                   onMouseEnter={e=>e.currentTarget.style.background=`${C.accent}08`}
                   onMouseLeave={e=>e.currentTarget.style.background="transparent"}
-                  style={{borderBottom:"1px solid #1e2d5422"}}>
+                  style={{borderBottom:`1px solid ${C.border}22`}}>
                   <td style={{padding:"10px 12px",color:C.accent,fontFamily:"monospace",fontWeight:700}}>{r._id}</td>
                   <td style={{padding:"10px 12px",color:C.text}}>{r.product}</td>
                   <td style={{padding:"10px 12px",color:C.text}}>{r.operator}</td>

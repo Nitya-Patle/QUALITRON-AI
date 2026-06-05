@@ -14,7 +14,7 @@ export default function Settings() {
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
-      <div style={{background:"#141c35",borderRadius:16,padding:24,border:"1px solid #1e2d54"}}>
+      <div style={{background:`${C.card}`,borderRadius:16,padding:24,border:`1px solid ${C.border}`}}>
         <SectionTitle>Role-Based Access Control</SectionTitle>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
           {[["Admin","👑","Full system access — all features"],
@@ -22,8 +22,8 @@ export default function Settings() {
             ["Employee","👷","View & run inspections only"]].map(([r,icon,desc])=>(
             <div key={r} onClick={()=>setRole(r)} style={{padding:20,borderRadius:12,cursor:"pointer",
               textAlign:"center",transition:"all 0.2s",
-              border:`2px solid ${role===r?C.accent:"#1e2d54"}`,
-              background:role===r?`${C.accent}15`:"#0a0e1a"}}>
+              border:`2px solid ${role===r?C.accent:`${C.border}`}`,
+              background:role===r?`${C.accent}15`:`${C.bg}`}}>
               <div style={{fontSize:36,marginBottom:8}}>{icon}</div>
               <div style={{fontWeight:800,color:role===r?C.accent:C.text,fontSize:15}}>{r}</div>
               <div style={{fontSize:11,color:C.muted,marginTop:4}}>{desc}</div>
@@ -33,12 +33,12 @@ export default function Settings() {
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
-        <div style={{background:"#141c35",borderRadius:16,padding:24,border:"1px solid #1e2d54"}}>
+        <div style={{background:`${C.card}`,borderRadius:16,padding:24,border:`1px solid ${C.border}`}}>
           <SectionTitle>AI Model Configuration</SectionTitle>
           <div style={{marginBottom:16}}>
             <label style={{fontSize:12,color:C.muted,display:"block",marginBottom:6}}>Model Version</label>
             <select value={model} onChange={e=>setModel(e.target.value)} style={{width:"100%",padding:"10px 12px",
-              borderRadius:8,background:"#0a0e1a",border:"1px solid #1e2d54",color:C.text,fontSize:13,outline:"none"}}>
+              borderRadius:8,background:`${C.bg}`,border:`1px solid ${C.border}`,color:C.text,fontSize:13,outline:"none"}}>
               {["YOLOv8n (Nano)","YOLOv8s (Small)","YOLOv8m (Medium)","YOLOv8l (Large)","YOLOv8x (Extra Large)"].map(m=><option key={m}>{m}</option>)}
             </select>
           </div>
@@ -53,21 +53,21 @@ export default function Settings() {
           </div>
           {[["Input Resolution","640 × 640"],["Device","CUDA:0 (GPU)"],["Batch Size","16"],["NMS IoU","0.45"]].map(([k,v],i)=>(
             <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",
-              borderBottom:"1px solid #1e2d54"}}>
+              borderBottom:`1px solid ${C.border}`}}>
               <span style={{color:C.muted,fontSize:13}}>{k}</span>
               <span style={{color:C.accent,fontWeight:700,fontSize:13,fontFamily:"monospace"}}>{v}</span>
             </div>
           ))}
         </div>
 
-        <div style={{background:"#141c35",borderRadius:16,padding:24,border:"1px solid #1e2d54"}}>
+        <div style={{background:`${C.card}`,borderRadius:16,padding:24,border:`1px solid ${C.border}`}}>
           <SectionTitle>System Information</SectionTitle>
           {[["Backend","Flask 3.0 (Python 3.11)"],["Frontend","React 18 + Recharts"],
             ["Database","MongoDB Atlas"],["AI Model","YOLOv8x — ultralytics"],
             ["Camera","OpenCV VideoCapture"],["Reports","ReportLab + openpyxl"],
             ["Alerts","SMTP + Twilio SMS"],["IoT","MQTT (paho)"]].map(([k,v],i)=>(
             <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",
-              borderBottom:"1px solid #1e2d54"}}>
+              borderBottom:`1px solid ${C.border}`}}>
               <span style={{color:C.muted,fontSize:13}}>{k}</span>
               <span style={{color:C.green,fontWeight:700,fontSize:12,fontFamily:"monospace"}}>{v}</span>
             </div>
@@ -75,7 +75,7 @@ export default function Settings() {
         </div>
       </div>
 
-      <div style={{background:"#141c35",borderRadius:16,padding:24,border:"1px solid #1e2d54"}}>
+      <div style={{background:`${C.card}`,borderRadius:16,padding:24,border:`1px solid ${C.border}`}}>
         <SectionTitle>Account Settings</SectionTitle>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           {[["Full Name",user?.name||"Nitya"],["Email",user?.email||"nitya@qualitron.ai"],
@@ -83,7 +83,7 @@ export default function Settings() {
             <div key={i}>
               <label style={{fontSize:12,color:C.muted,display:"block",marginBottom:4}}>{l}</label>
               <input defaultValue={v} style={{width:"100%",padding:"10px 12px",borderRadius:8,
-                background:"#0a0e1a",border:"1px solid #1e2d54",color:C.text,fontSize:13,outline:"none"}}/>
+                background:`${C.bg}`,border:`1px solid ${C.border}`,color:C.text,fontSize:13,outline:"none"}}/>
             </div>
           ))}
         </div>
