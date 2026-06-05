@@ -9,9 +9,29 @@ export default function Reports() {
 
   const download = async (type) => {
     setGenerating(type);
-    await new Promise(r=>setTimeout(r,1500));
-    const url = type==="PDF" ? reportsAPI.pdfUrl(days) : reportsAPI.excelUrl(days);
-    try { window.open(url,"_blank"); } catch { alert(`${type} report ready! (Connect backend to download)`); }
+    try {
+      if (type === "KPI") {
+        alert("KPI Summary is currently viewable directly on the Dashboard and Analytics pages.");
+        setGenerating(null);
+        return;
+      }
+      const url = type === "PDF" ? reportsAPI.pdfUrl(days) : reportsAPI.excelUrl(days);
+      const token = localStorage.getItem("qc_token");
+      const res = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
+      if (!res.ok) throw new Error("Failed to generate report");
+      
+      const blob = await res.blob();
+      const objUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = `Qualitron_${type}_Report_Last_${days}_days.${type === "PDF" ? "pdf" : "xlsx"}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(objUrl);
+    } catch (e) {
+      alert("Error generating report: " + e.message);
+    }
     setGenerating(null);
   };
 
