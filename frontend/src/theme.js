@@ -1,15 +1,15 @@
 export const C = {
-  bg:     "#0a0e1a",
-  panel:  "#0f1628",
-  card:   "#141c35",
-  border: "#1e2d54",
-  accent: "#00d4ff",
-  green:  "#00ff88",
-  red:    "#ff3d5a",
-  yellow: "#ffcc00",
-  purple: "#7c3aed",
-  text:   "#e8eeff",
-  muted:  "#6b7db3",
+  bg:     "var(--bg)",
+  panel:  "var(--panel)",
+  card:   "var(--card)",
+  border: "var(--border)",
+  accent: "var(--accent)",
+  green:  "var(--green)",
+  red:    "var(--red)",
+  yellow: "var(--yellow)",
+  purple: "var(--purple)",
+  text:   "var(--text)",
+  muted:  "var(--muted)",
 };
 
 export const DEFECT_TYPES = ["Scratch","Crack","Dent","Discoloration","Missing Part","Surface Blur","Rust","Weld Flaw"];

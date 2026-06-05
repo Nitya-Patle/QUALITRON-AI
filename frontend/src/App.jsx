@@ -22,12 +22,26 @@ export default function App() {
   const [user, setUser]   = useState(null);
   const [page, setPage]   = useState("dashboard");
   const [dark, setDark]   = useState(true);
-  const [alerts, setAlerts] = useState(3);
+  const [alerts, setAlerts] = useState(0);
+
+  useEffect(() => {
+    if (dark) document.body.classList.remove("light-mode");
+    else document.body.classList.add("light-mode");
+  }, [dark]);
 
   useEffect(() => {
     const t = localStorage.getItem("qc_token");
     const u = localStorage.getItem("qc_user");
-    if (t && u) setUser(JSON.parse(u));
+    if (t && u) {
+      setUser(JSON.parse(u));
+      import("./utils/api").then(({ alertsAPI }) => {
+        alertsAPI.list(1).then(res => {
+          if (res && res.alerts) {
+            setAlerts(res.alerts.filter(a => !a.resolved).length);
+          }
+        }).catch(() => {});
+      });
+    }
   }, []);
 
   const login  = (token, userData) => {

@@ -1,8 +1,35 @@
+:root {
+  --bg: #0a0e1a;
+  --panel: #0f1628;
+  --card: #141c35;
+  --border: #1e2d54;
+  --accent: #00d4ff;
+  --green: #00ff88;
+  --red: #ff3d5a;
+  --yellow: #ffcc00;
+  --purple: #7c3aed;
+  --text: #e8eeff;
+  --muted: #6b7db3;
+}
+body.light-mode {
+  --bg: #f4f7f6;
+  --panel: #ffffff;
+  --card: #ffffff;
+  --border: #d1d9e6;
+  --accent: #0275d8;
+  --green: #28a745;
+  --red: #d9534f;
+  --yellow: #f0ad4e;
+  --purple: #6f42c1;
+  --text: #2d3748;
+  --muted: #718096;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0a0e1a; color: #e8eeff; font-family: 'DM Sans', 'Segoe UI', sans-serif; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', 'Segoe UI', sans-serif; transition: background 0.3s, color 0.3s; }
 ::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #0f1628; }
-::-webkit-scrollbar-thumb { background: #1e2d54; border-radius: 2px; }
+::-webkit-scrollbar-track { background: var(--panel); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 @keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
 @keyframes spin { to { transform: rotate(360deg); } }
