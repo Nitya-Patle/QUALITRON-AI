@@ -133,11 +133,11 @@ class DefectDetector:
         edges      = cv2.Canny(gray, 50, 150)
         edge_ratio = np.count_nonzero(edges) / (h * w)
         
-        if edge_ratio > 0.005:
+        if edge_ratio > 0.025:
             defects.append({
-                "type":       "crack" if edge_ratio > 0.02 else "scratch",
-                "confidence": round(min(0.99, edge_ratio * 30), 2),
-                "severity":   "Critical" if edge_ratio > 0.02 else "Medium",
+                "type":       "crack" if edge_ratio > 0.045 else "scratch",
+                "confidence": round(min(0.99, edge_ratio * 15), 2),
+                "severity":   "Critical" if edge_ratio > 0.045 else "Medium",
                 "bbox":       None,
             })
 
