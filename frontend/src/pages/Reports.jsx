@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { C } from "../theme";
-import { reportsAPI } from "../utils/api";
+import { reportsAPI, dashboardAPI } from "../utils/api";
 import SectionTitle from "../components/SectionTitle";
 
 export default function Reports() {
@@ -10,9 +10,6 @@ export default function Reports() {
     total: 0, passed: 0, defective: 0,
     rate: 0, accuracy: 0, topDefect: "None"
   });
-
-  import { useEffect } from "react";
-  import { dashboardAPI } from "../utils/api";
 
   useEffect(() => {
     Promise.all([dashboardAPI.kpis(), dashboardAPI.defectDist()])
