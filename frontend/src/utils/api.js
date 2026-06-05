@@ -2,7 +2,16 @@ const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const token  = () => localStorage.getItem("qc_token");
 const hdr    = (form=false) => ({ Authorization:`Bearer ${token()}`, ...(!form && {"Content-Type":"application/json"}) });
-const handle = async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.error||"API error"); return d; };
+const handle = async (r) => { 
+  const d = await r.json(); 
+  if (r.status === 401 && d.msg === "Token has expired") {
+    localStorage.removeItem("qc_token");
+    localStorage.removeItem("qc_user");
+    window.location.reload();
+  }
+  if (!r.ok) throw new Error(d.error || d.msg || "API error"); 
+  return d; 
+};
 
 export const authAPI = {
   login:    (email,pass) => fetch(`${BASE}/auth/login`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})}).then(handle),

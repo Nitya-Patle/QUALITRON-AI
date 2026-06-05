@@ -17,6 +17,9 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "qualitron-super-secret-2024")
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB
 
+from datetime import timedelta
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
+
 jwt = JWTManager(app)
 
 from database.db import init_db
@@ -39,6 +42,11 @@ app.register_blueprint(alerts_bp,     url_prefix="/api/alerts")
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+    import traceback
+    return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
+
+@app.errorhandler(500)
+def handle_500(e):
     import traceback
     return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
