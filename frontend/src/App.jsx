@@ -29,18 +29,22 @@ export default function App() {
     else document.body.classList.add("light-mode");
   }, [dark]);
 
+  const refreshAlerts = () => {
+    import("./utils/api").then(({ alertsAPI }) => {
+      alertsAPI.list(1).then(res => {
+        if (res && res.alerts) {
+          setAlerts(res.alerts.filter(a => !a.resolved).length);
+        }
+      }).catch(() => {});
+    });
+  };
+
   useEffect(() => {
     const t = localStorage.getItem("qc_token");
     const u = localStorage.getItem("qc_user");
     if (t && u) {
       setUser(JSON.parse(u));
-      import("./utils/api").then(({ alertsAPI }) => {
-        alertsAPI.list(1).then(res => {
-          if (res && res.alerts) {
-            setAlerts(res.alerts.filter(a => !a.resolved).length);
-          }
-        }).catch(() => {});
-      });
+      refreshAlerts();
     }
   }, []);
 
@@ -65,7 +69,7 @@ export default function App() {
         <div style={{marginLeft:220,flex:1,display:"flex",flexDirection:"column"}}>
           <Topbar page={page} dark={dark} setDark={setDark} user={user} logout={logout} alerts={alerts} />
           <main style={{flex:1,padding:"24px 28px",overflowY:"auto"}}>
-            <Page user={user} />
+            <Page user={user} refreshAlerts={refreshAlerts} />
           </main>
         </div>
       </div>

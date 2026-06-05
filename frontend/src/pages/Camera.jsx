@@ -3,7 +3,7 @@ import { C } from "../theme";
 import { cameraAPI, inspectAPI } from "../utils/api";
 import SectionTitle from "../components/SectionTitle";
 
-export default function Camera() {
+export default function Camera({ refreshAlerts }) {
   const [active, setActive] = useState(false);
   const [frameCount, setFrameCount] = useState(0);
   const [detections, setDets] = useState([]);
@@ -106,8 +106,11 @@ export default function Camera() {
         .then(res => res.blob())
         .then(blob => {
           const file = new File([blob], `live_snapshot_${Date.now()}.jpg`, { type: "image/jpeg" });
-          inspectAPI.upload(file, "Live Monitor Feed", "Station-Live")
-            .catch(e => console.error("Error saving live record:", e));
+          import("../utils/api").then(({ inspectAPI }) => {
+             inspectAPI.upload(file, "Live Monitor Feed", "Station-Live")
+               .then(res => { if (!res.passed && refreshAlerts) refreshAlerts(); })
+               .catch(e => console.error("Error saving live record:", e));
+          });
         });
     }
 

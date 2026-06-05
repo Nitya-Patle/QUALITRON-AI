@@ -13,7 +13,7 @@ const DEMO_ALERTS = [
   {_id:"6",type:"SUCCESS", message:"Quality target met — Line A passed 200 units consecutively",timestamp:new Date(Date.now()-7200000).toISOString(),resolved:true,icon:"✅"},
 ];
 
-export default function Alerts() {
+export default function Alerts({ refreshAlerts }) {
   const [alerts,setAlerts] = useState(DEMO_ALERTS);
   const [cfg,   setCfg]    = useState({email:true,sms:true,whatsapp:false,slack:false});
 
@@ -22,8 +22,11 @@ export default function Alerts() {
   },[]);
 
   const resolve = async (id) => {
-    try { await alertsAPI.resolve(id); } catch {}
-    setAlerts(prev=>prev.map(a=>a._id===id?{...a,resolved:true}:a));
+    try {
+      await alertsAPI.resolve(id);
+      setAlerts(prev=>prev.map(a=>a._id===id?{...a,resolved:true}:a));
+      if (refreshAlerts) refreshAlerts();
+    } catch {}
   };
 
   const counts = {CRITICAL:0,WARNING:0,INFO:0,resolved:0};

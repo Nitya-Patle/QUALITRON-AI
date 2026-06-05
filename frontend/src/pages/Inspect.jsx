@@ -5,7 +5,7 @@ import SectionTitle from "../components/SectionTitle";
 
 const SEV_COLOR = {Low:C.yellow,Medium:"#ff6b35",High:C.red,Critical:"#ff0040"};
 
-export default function Inspect() {
+export default function Inspect({ refreshAlerts }) {
   const [dragging,setDragging] = useState(false);
   const [imageUrl,setImageUrl] = useState(null);
   const [imageFile,setFile]    = useState(null);
@@ -32,6 +32,7 @@ export default function Inspect() {
     try {
       const res = await inspectAPI.upload(imageFile, product);
       setResult(res);
+      if (!res.passed && refreshAlerts) refreshAlerts();
     } catch(e) { setError(e.message); }
     setLoading(false);
   };
