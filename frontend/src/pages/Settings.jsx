@@ -6,7 +6,7 @@ import SectionTitle from "../components/SectionTitle";
 export default function Settings() {
   const { user } = useAuth();
   const [role, setRole]     = useState(user?.role || "Admin");
-  const [model, setModel]   = useState("YOLOv8x");
+  const [model, setModel]   = useState("Hybrid (Gemini + YOLO)");
   const [conf,  setConf]    = useState(0.75);
   const [saved, setSaved]   = useState(false);
 
@@ -39,7 +39,7 @@ export default function Settings() {
             <label style={{fontSize:12,color:C.muted,display:"block",marginBottom:6}}>Model Version</label>
             <select value={model} onChange={e=>setModel(e.target.value)} style={{width:"100%",padding:"10px 12px",
               borderRadius:8,background:`${C.bg}`,border:`1px solid ${C.border}`,color:C.text,fontSize:13,outline:"none"}}>
-              {["YOLOv8n (Nano)","YOLOv8s (Small)","YOLOv8m (Medium)","YOLOv8l (Large)","YOLOv8x (Extra Large)"].map(m=><option key={m}>{m}</option>)}
+              {["Hybrid (Gemini + YOLO)","YOLOv8n (Nano)","YOLOv8s (Small)","YOLOv8m (Medium)","YOLOv8l (Large)","YOLOv8x (Extra Large)"].map(m=><option key={m}>{m}</option>)}
             </select>
           </div>
           <div style={{marginBottom:16}}>
@@ -63,7 +63,7 @@ export default function Settings() {
         <div style={{background:`${C.card}`,borderRadius:16,padding:24,border:`1px solid ${C.border}`}}>
           <SectionTitle>System Information</SectionTitle>
           {[["Backend","Flask 3.0 (Python 3.11)"],["Frontend","React 18 + Recharts"],
-            ["Database","MongoDB Atlas"],["AI Model","YOLOv8x — ultralytics"],
+            ["Database","MongoDB Atlas"],["AI Model","Gemini VLM + YOLOv8"],
             ["Camera","OpenCV VideoCapture"],["Reports","ReportLab + openpyxl"],
             ["Alerts","SMTP + Twilio SMS"],["IoT","MQTT (paho)"]].map(([k,v],i)=>(
             <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",
