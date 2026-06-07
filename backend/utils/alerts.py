@@ -94,7 +94,7 @@ def send_sms_alert(defects, product="Unknown"):
         print(f"[Alert] SMS error: {e}")
 
 
-def send_defect_alert(defects, product="Unknown"):
+def send_defect_alert(defects, product="Unknown", operator=None):
     if not defects: return
     
     # Run synchronously to guarantee delivery before Render kills the request thread
@@ -111,6 +111,7 @@ def send_defect_alert(defects, product="Unknown"):
             f"{len(defects)} defect(s) on {product}: " + ", ".join(d["type"] for d in defects),
             severity="CRITICAL" if len(defects) >= 3 else "HIGH",
             sent_via=["email", "sms"],
+            operator=operator
         )
         db.alerts.insert_one(doc)
     except Exception as e:

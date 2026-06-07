@@ -65,7 +65,7 @@ def upload():
 
     # Send alert if defects found
     if not result["passed"]:
-        send_defect_alert(result["defects"], product)
+        send_defect_alert(result["defects"], product, operator)
 
     return jsonify({
         "inspection_id":   doc["_id"],
@@ -92,8 +92,9 @@ def history():
     limit   = int(request.args.get("limit", 20))
     status  = request.args.get("status")
     product = request.args.get("product")
+    operator = get_jwt_identity()
 
-    query = {}
+    query = {"operator": operator}
     if status:  query["status"]  = status.upper()
     if product: query["product"] = {"$regex": product, "$options": "i"}
 
@@ -119,7 +120,7 @@ def history():
 @jwt_required()
 def get_record(record_id):
     db  = get_db()
-    doc = db.inspections.find_one({"_id": record_id})
+    doc = db.inspections.find_one({"_id": record_id, "operator": get_jwt_identity()})
     if not doc:
         return jsonify({"error": "Not found"}), 404
     doc["timestamp"] = doc["timestamp"].isoformat()
@@ -131,7 +132,7 @@ def get_record(record_id):
 @jwt_required()
 def delete_record(record_id):
     db  = get_db()
-    res = db.inspections.delete_one({"_id": record_id})
+    res = db.inspections.delete_one({"_id": record_id, "operator": get_jwt_identity()})
     if res.deleted_count == 0:
         return jsonify({"error": "Not found"}), 404
     return jsonify({"deleted": record_id})

@@ -20,12 +20,13 @@ dashboard_bp = Blueprint("dashboard", __name__)
 @jwt_required()
 def kpis():
     db    = get_db()
+    operator = get_jwt_identity()
     since = datetime.now(timezone.utc) - timedelta(days=7)
-    total     = db.inspections.count_documents({"timestamp": {"$gte": since}})
-    defective = db.inspections.count_documents({"timestamp": {"$gte": since}, "status": "FAIL"})
+    total     = db.inspections.count_documents({"operator": operator, "timestamp": {"$gte": since}})
+    defective = db.inspections.count_documents({"operator": operator, "timestamp": {"$gte": since}, "status": "FAIL"})
     passed    = total - defective
     pipeline  = [
-        {"$match": {"timestamp": {"$gte": since}}},
+        {"$match": {"operator": operator, "timestamp": {"$gte": since}}},
         {"$group": {"_id": None, "avg": {"$avg": "$accuracy"}}},
     ]
     acc = list(db.inspections.aggregate(pipeline))
@@ -42,9 +43,10 @@ def kpis():
 @jwt_required()
 def daily():
     db    = get_db()
+    operator = get_jwt_identity()
     since = datetime.now(timezone.utc) - timedelta(days=7)
     pipeline = [
-        {"$match": {"timestamp": {"$gte": since}}},
+        {"$match": {"operator": operator, "timestamp": {"$gte": since}}},
         {"$group": {
             "_id":       {"$dateToString": {"format": "%Y-%m-%d", "date": "$timestamp"}},
             "total":     {"$sum": 1},
@@ -66,9 +68,10 @@ def daily():
 @jwt_required()
 def hourly():
     db    = get_db()
+    operator = get_jwt_identity()
     since = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     pipeline = [
-        {"$match": {"timestamp": {"$gte": since}}},
+        {"$match": {"operator": operator, "timestamp": {"$gte": since}}},
         {"$group": {
             "_id":     {"$hour": "$timestamp"},
             "total":   {"$sum": 1},
@@ -88,7 +91,9 @@ def hourly():
 @jwt_required()
 def defect_dist():
     db = get_db()
+    operator = get_jwt_identity()
     pipeline = [
+        {"$match": {"operator": operator}},
         {"$unwind": "$defects"},
         {"$group": {"_id": "$defects.type", "count": {"$sum": 1}}},
         {"$sort": {"count": -1}},

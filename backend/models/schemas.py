@@ -37,12 +37,13 @@ def user_doc(name, email, password_hash, role="Employee"):
     }
 
 
-def alert_doc(alert_type, message, severity="INFO", sent_via=None):
+def alert_doc(alert_type, message, severity="INFO", sent_via=None, operator=None):
     return {
         "_id":       str(uuid.uuid4()),
         "type":      alert_type,
         "message":   message,
         "severity":  severity,       # INFO | WARNING | HIGH | CRITICAL
+        "operator":  operator,
         "sent_via":  sent_via or [],
         "resolved":  False,
         "timestamp": datetime.now(timezone.utc),

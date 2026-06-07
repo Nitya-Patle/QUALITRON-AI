@@ -27,8 +27,9 @@ reports_bp = Blueprint("reports", __name__)
 
 def _records(days=7):
     db    = get_db()
+    operator = get_jwt_identity()
     since = datetime.now(timezone.utc) - timedelta(days=days)
-    return list(db.inspections.find({"timestamp": {"$gte": since}}).sort("timestamp", -1).limit(500))
+    return list(db.inspections.find({"operator": operator, "timestamp": {"$gte": since}}).sort("timestamp", -1).limit(500))
 
 
 # ── PDF ──────────────────────────────────────────────────────
