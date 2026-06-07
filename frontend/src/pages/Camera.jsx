@@ -39,8 +39,8 @@ export default function Camera({ refreshAlerts }) {
           
           lastFrameRef.current = b64; // Store for saving later
           
-          const shouldPulse = (frameCountRef.current % 4 === 0);
-          const res = await cameraAPI.processFrame(b64, shouldPulse);
+          // Disable Cloud Pulse to save API Quota, use YOLO strictly for Live Monitor
+          const res = await cameraAPI.processFrame(b64, false);
           
           if (res.annotated_image) {
             setStreamUrl(res.annotated_image);
