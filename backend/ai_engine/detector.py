@@ -52,6 +52,7 @@ class DefectDetector:
         objects = []
         defects = []
         
+        error_message = None
         api_key = os.environ.get("GEMINI_API_KEY")
         if use_cloud and api_key:
             try:
@@ -59,13 +60,14 @@ class DefectDetector:
                 model_name = "Gemini 1.5 Flash (Cloud VLM)"
             except Exception as e:
                 print(f"[AI] Gemini API failed: {e}. Falling back to Edge AI.")
+                error_message = str(e)
                 use_cloud = False
                 
         if not (use_cloud and api_key):
             if self.net is not None:
                 objects = self._run_yolo_onnx(img_array)
                 defects = self._analyze_defects(img_array, objects)
-                model_name = "YOLOv8n (ONNX Edge)"
+                model_name = f"YOLOv8n (Error: {error_message})" if error_message else "YOLOv8n (ONNX Edge)"
             else:
                 defects = self._image_quality_check(img_array, None)
                 model_name = "CV2 Analytics"
