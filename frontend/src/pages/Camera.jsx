@@ -17,13 +17,16 @@ export default function Camera({ refreshAlerts }) {
   const isProcessing = useRef(false);
   const lastFrameRef = useRef(null);
 
+  const frameCountRef = useRef(0);
+  
   const captureFrame = async () => {
     if (!activeRef.current || !videoRef.current || !canvasRef.current) return;
     
     if (!isProcessing.current) {
       isProcessing.current = true;
       try {
-        setFrameCount(c => c + 1);
+        frameCountRef.current += 1;
+        setFrameCount(frameCountRef.current);
         const canvas = canvasRef.current;
         const video = videoRef.current;
         
@@ -36,7 +39,7 @@ export default function Camera({ refreshAlerts }) {
           
           lastFrameRef.current = b64; // Store for saving later
           
-          const shouldPulse = (frameCount % 4 === 0 && frameCount > 0);
+          const shouldPulse = (frameCountRef.current % 4 === 0);
           const res = await cameraAPI.processFrame(b64, shouldPulse);
           
           if (res.annotated_image) {
