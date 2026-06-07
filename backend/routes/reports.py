@@ -7,7 +7,7 @@ GET /excel  download Excel workbook
 import io
 from datetime import datetime, timedelta, timezone
 from flask import Blueprint, request, jsonify, send_file
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.db import get_db
 
 from reportlab.lib.pagesizes import A4

@@ -7,7 +7,7 @@ PUT  /config        update config
 """
 
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.db import get_db
 from models.schemas import alert_doc
 
