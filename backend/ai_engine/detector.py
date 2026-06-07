@@ -143,11 +143,13 @@ class DefectDetector:
         response = model.generate_content([prompt, image])
         text = response.text.strip()
         
-        # Clean up possible markdown code blocks
-        if text.startswith("```json"): text = text[7:]
-        if text.startswith("```"): text = text[3:]
-        if text.endswith("```"): text = text[:-3]
-        
+        import re
+        match = re.search(r'\[.*\]', text, re.DOTALL)
+        if match:
+            text = match.group(0)
+        else:
+            text = "[]"
+            
         try:
             return json.loads(text.strip())
         except Exception as e:
