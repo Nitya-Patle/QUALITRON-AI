@@ -78,9 +78,10 @@ def process_frame():
             base64_data = base64_data.split(",")[1]
             
         image_bytes = base64.b64decode(base64_data)
+        use_cloud = data.get("use_cloud", False)
         
         # Run inspection instantly (no DB saves, no emails)
-        result = detector.inspect_image(image_bytes)
+        result = detector.inspect_image(image_bytes, use_cloud=use_cloud)
         
         return jsonify({
             "defects": result.get("defects", []),

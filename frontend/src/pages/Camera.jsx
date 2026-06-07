@@ -36,7 +36,8 @@ export default function Camera({ refreshAlerts }) {
           
           lastFrameRef.current = b64; // Store for saving later
           
-          const res = await cameraAPI.processFrame(b64);
+          const shouldPulse = (frameCount % 4 === 0 && frameCount > 0);
+          const res = await cameraAPI.processFrame(b64, shouldPulse);
           
           if (res.annotated_image) {
             setStreamUrl(res.annotated_image);
