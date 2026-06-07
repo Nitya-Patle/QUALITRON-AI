@@ -91,7 +91,7 @@ export default function Dashboard() {
         <KPICard label="TOTAL INSPECTED" value={loading?"...":kpis.total.toLocaleString()} sub="This week" color={C.accent} icon="🔍"/>
         <KPICard label="DEFECTIVE"       value={loading?"...":kpis.defective} sub={`${(100-(kpis.pass_rate||0)).toFixed(1)}% defect rate`} color={C.red} icon="⚠️"/>
         <KPICard label="PASSED"          value={loading?"...":kpis.passed.toLocaleString()} sub="Quality approved" color={C.green} icon="✅"/>
-        <KPICard label="AI ACCURACY"     value={loading?"...":`${kpis.accuracy}%`} sub="YOLOv8 model" color={C.yellow} icon="🤖"/>
+        <KPICard label="AI ACCURACY"     value={loading?"...":`${kpis.accuracy}%`} sub="Hybrid AI System" color={C.yellow} icon="🤖"/>
       </div>
 
       {/* Charts Row 1 */}

@@ -72,7 +72,7 @@ export default function Inspect({ refreshAlerts }) {
           {loading && (
             <div style={{marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:6,fontSize:12,color:C.muted}}>
-                <span>YOLOv8 Processing...</span><span>{progress}%</span>
+                <span>Hybrid AI Processing...</span><span>{progress}%</span>
               </div>
               <div style={{background:C.border,borderRadius:4,height:6}}>
                 <div style={{width:`${progress}%`,height:"100%",background:`linear-gradient(90deg,${C.accent},#7c3aed)`,borderRadius:4,transition:"width 0.1s"}}/>
@@ -97,7 +97,7 @@ export default function Inspect({ refreshAlerts }) {
             <div style={{textAlign:"center",padding:60,color:C.muted}}>
               <div style={{fontSize:56}}>🤖</div>
               <div style={{marginTop:12,fontSize:14}}>Upload an image and run inspection</div>
-              <div style={{marginTop:8,fontSize:12}}>YOLOv8 will detect defects automatically</div>
+              <div style={{marginTop:8,fontSize:12}}>Hybrid AI will detect defects automatically</div>
             </div>
           ) : (
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -166,7 +166,7 @@ export default function Inspect({ refreshAlerts }) {
         </div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-        {[{icon:"🧠",label:"YOLOv8 Model",desc:"Deep learning inference"},
+        {[{icon:"🧠",label:"Hybrid AI Engine",desc:"Gemini Cloud & YOLOv8 Edge"},
           {icon:"🗺️",label:"Heatmap Detection",desc:"Visual defect mapping"},
           {icon:"⚡",label:"GPU Accelerated",desc:"CUDA-optimized"},
           {icon:"📦",label:"MongoDB Storage",desc:"All results persisted"}].map((f,i)=>(
