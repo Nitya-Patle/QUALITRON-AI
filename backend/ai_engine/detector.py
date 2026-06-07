@@ -184,12 +184,12 @@ class DefectDetector:
         edges      = cv2.Canny(gray, 100, 200)
         edge_ratio = np.count_nonzero(edges) / (h * w)
         
-        # Increased threshold to prevent false positives on normal items
-        if edge_ratio > 0.15:
+        # Medium threshold to balance false positives and genuine cracks
+        if edge_ratio > 0.08:
             defects.append({
-                "type":       "crack" if edge_ratio > 0.20 else "scratch",
-                "confidence": round(min(0.99, edge_ratio * 4), 2),
-                "severity":   "Critical" if edge_ratio > 0.20 else "Medium",
+                "type":       "crack" if edge_ratio > 0.15 else "scratch",
+                "confidence": round(min(0.99, edge_ratio * 5), 2),
+                "severity":   "Critical" if edge_ratio > 0.15 else "Medium",
                 "bbox":       None,
             })
 
@@ -198,23 +198,23 @@ class DefectDetector:
             sat_std = float(np.std(hsv[:,:,1]))
             val     = hsv[:,:,2]
 
-            # Increased saturation threshold
-            if sat_std > 120:
+            # Medium saturation threshold for rust/discoloration
+            if sat_std > 60:
                 defects.append({
-                    "type": "discoloration", "severity": "Low",
-                    "confidence": round(min(0.92, sat_std/140), 2), "bbox": None,
+                    "type": "discoloration/rust", "severity": "Medium",
+                    "confidence": round(min(0.92, sat_std/100), 2), "bbox": None,
                 })
 
-            # Increased darkness ratio
-            dark_ratio = np.count_nonzero(val < 20) / (h * w)
-            if 0.4 < dark_ratio < 0.8:
+            # Medium darkness ratio
+            dark_ratio = np.count_nonzero(val < 30) / (h * w)
+            if 0.2 < dark_ratio < 0.8:
                 defects.append({
                     "type": "dent", "severity": "High",
-                    "confidence": round(min(0.88, dark_ratio*2), 2), "bbox": None,
+                    "confidence": round(min(0.88, dark_ratio*3), 2), "bbox": None,
                 })
 
-        # Increased stain threshold
-        if float(np.std(gray)) > 90 and float(np.mean(gray)) < 150:
+        # Medium stain threshold
+        if float(np.std(gray)) > 60 and float(np.mean(gray)) < 180:
             defects.append({
                 "type": "stain", "severity": "Low",
                 "confidence": 0.72, "bbox": None,
