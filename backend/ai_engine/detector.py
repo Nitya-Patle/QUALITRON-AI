@@ -61,9 +61,10 @@ class DefectDetector:
             except Exception as e:
                 print(f"[AI] Gemini API failed: {e}. Falling back to Edge AI.")
                 error_message = str(e)
-                use_cloud = False
+                defects = [{"type": f"API Error: {e}", "severity": "Critical", "confidence": 1.0}]
+                model_name = f"Gemini Error: {e}"
                 
-        if not (use_cloud and api_key):
+        if not (use_cloud and api_key) and not error_message:
             if self.net is not None:
                 objects = self._run_yolo_onnx(img_array)
                 defects = self._analyze_defects(img_array, objects)
@@ -154,7 +155,7 @@ class DefectDetector:
             return json.loads(text.strip())
         except Exception as e:
             print(f"[AI] Gemini JSON parsing failed: {e}. Raw text: {text}")
-            return []
+            return [{"type": "JSON Parse Error", "severity": "Critical", "confidence": 1.0}]
 
     def _analyze_defects(self, img, objects) -> list:
         defects = []
