@@ -57,7 +57,7 @@ class DefectDetector:
         if use_cloud and api_key:
             try:
                 defects = self._run_gemini_vision(image_bytes, api_key)
-                model_name = "Gemini 1.5 Flash (Cloud VLM)"
+                model_name = "Gemini 2.5 Flash (Cloud VLM)"
             except Exception as e:
                 print(f"[AI] Gemini API failed: {e}. Falling back to Edge AI.")
                 error_message = str(e)
