@@ -30,7 +30,7 @@ export default function Dashboard() {
       const data = await dashboardAPI.kpis();
       setKpis(data);
     } catch(e) {
-      setError("Backend se connect nahi ho pa raha. Check karo python app.py chal raha hai.");
+      setError("Failed to connect to the backend. Please check your network connection or server status.");
     }
 
     // Load daily trend
@@ -101,7 +101,7 @@ export default function Dashboard() {
           {daily.length === 0 ? (
             <div style={{height:200,display:"flex",alignItems:"center",justifyContent:"center",
               color:C.muted,fontSize:13}}>
-              {loading ? "Loading..." : "Abhi tak koi inspection nahi hua — image upload karo AI Inspection page pe"}
+              {loading ? "Loading..." : "No inspection data available yet. Please upload an image on the AI Inspection page."}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
@@ -133,7 +133,7 @@ export default function Dashboard() {
           {dist.length === 0 ? (
             <div style={{height:200,display:"flex",alignItems:"center",justifyContent:"center",
               color:C.muted,fontSize:13,textAlign:"center"}}>
-              {loading ? "Loading..." : "Defect data nahi hai abhi"}
+              {loading ? "Loading..." : "No defect distribution data available."}
             </div>
           ) : (
             <>
@@ -165,7 +165,7 @@ export default function Dashboard() {
           <SectionTitle>Hourly Inspections</SectionTitle>
           {hourly.length === 0 ? (
             <div style={{height:180,display:"flex",alignItems:"center",justifyContent:"center",color:C.muted,fontSize:13}}>
-              {loading ? "Loading..." : "Aaj ka data nahi hai abhi"}
+              {loading ? "Loading..." : "No inspection data for today."}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={180}>
@@ -185,7 +185,7 @@ export default function Dashboard() {
           <SectionTitle>Accuracy Trend</SectionTitle>
           {daily.length === 0 ? (
             <div style={{height:180,display:"flex",alignItems:"center",justifyContent:"center",color:C.muted,fontSize:13}}>
-              {loading ? "Loading..." : "Data nahi hai abhi"}
+              {loading ? "Loading..." : "No accuracy data available."}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={180}>
@@ -213,10 +213,10 @@ export default function Dashboard() {
           <div style={{textAlign:"center",padding:"40px 20px",color:C.muted}}>
             <div style={{fontSize:40,marginBottom:12}}>📭</div>
             <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:6}}>
-              {loading ? "Loading records..." : "Koi record nahi mila"}
+              {loading ? "Loading records..." : "No recent records found"}
             </div>
             <div style={{fontSize:12}}>
-              {!loading && "AI Inspection page pe koi image upload karo — woh yahan dikhega"}
+              {!loading && "Upload an image on the AI Inspection page and it will appear here."}
             </div>
           </div>
         ) : (
