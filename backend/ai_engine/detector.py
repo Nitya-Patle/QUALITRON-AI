@@ -130,14 +130,15 @@ class DefectDetector:
         if h < 10 or w < 10:
             return defects
 
-        edges      = cv2.Canny(gray, 50, 150)
+        edges      = cv2.Canny(gray, 100, 200)
         edge_ratio = np.count_nonzero(edges) / (h * w)
         
-        if edge_ratio > 0.025:
+        # Increased threshold to prevent false positives on normal items
+        if edge_ratio > 0.15:
             defects.append({
-                "type":       "crack" if edge_ratio > 0.045 else "scratch",
-                "confidence": round(min(0.99, edge_ratio * 15), 2),
-                "severity":   "Critical" if edge_ratio > 0.045 else "Medium",
+                "type":       "crack" if edge_ratio > 0.20 else "scratch",
+                "confidence": round(min(0.99, edge_ratio * 4), 2),
+                "severity":   "Critical" if edge_ratio > 0.20 else "Medium",
                 "bbox":       None,
             })
 
@@ -146,20 +147,23 @@ class DefectDetector:
             sat_std = float(np.std(hsv[:,:,1]))
             val     = hsv[:,:,2]
 
-            if sat_std > 80:
+            # Increased saturation threshold
+            if sat_std > 120:
                 defects.append({
                     "type": "discoloration", "severity": "Low",
-                    "confidence": round(min(0.92, sat_std/100), 2), "bbox": None,
+                    "confidence": round(min(0.92, sat_std/140), 2), "bbox": None,
                 })
 
+            # Increased darkness ratio
             dark_ratio = np.count_nonzero(val < 20) / (h * w)
-            if 0.15 < dark_ratio < 0.5:
+            if 0.4 < dark_ratio < 0.8:
                 defects.append({
                     "type": "dent", "severity": "High",
-                    "confidence": round(min(0.88, dark_ratio*5), 2), "bbox": None,
+                    "confidence": round(min(0.88, dark_ratio*2), 2), "bbox": None,
                 })
 
-        if float(np.std(gray)) > 70 and float(np.mean(gray)) < 180:
+        # Increased stain threshold
+        if float(np.std(gray)) > 90 and float(np.mean(gray)) < 150:
             defects.append({
                 "type": "stain", "severity": "Low",
                 "confidence": 0.72, "bbox": None,
