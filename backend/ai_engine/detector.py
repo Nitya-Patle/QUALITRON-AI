@@ -126,11 +126,12 @@ class DefectDetector:
         model = genai.GenerativeModel('gemini-2.5-flash')
         
         prompt = """
-        You are an industrial quality control inspector.
-        Analyze this image for manufacturing defects such as cracks, scratches, discoloration, stains, dents, or burrs.
+        You are an industrial quality control inspector looking at a live webcam feed.
+        Analyze this image for ANY manufacturing defects or anomalies such as cracks, scratches, discoloration, stains, dents, burrs, swelling, bloating, or shape deformities.
+        CRITICAL RULE: If you see a swollen or bloated battery, it is a Critical defect.
         If the object is clean, normal, and passes quality control, return an empty array [].
         If there are defects, return a JSON array of objects with the following keys:
-        - "type": (e.g. "scratch", "crack", "stain", "discoloration")
+        - "type": (e.g. "scratch", "stain", "swollen_battery", "deformity")
         - "severity": (e.g. "Low", "Medium", "High", "Critical")
         - "confidence": (a float between 0.80 and 0.99)
         Respond ONLY with the JSON array, nothing else. No markdown wrappers.
