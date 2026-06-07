@@ -30,12 +30,16 @@ def kpis():
         {"$group": {"_id": None, "avg": {"$avg": "$accuracy"}}},
     ]
     acc = list(db.inspections.aggregate(pipeline))
+    avg_acc = 0.0
+    if acc and len(acc) > 0 and acc[0].get("avg") is not None:
+        avg_acc = round(acc[0]["avg"], 1)
+        
     return jsonify({
         "total":     total,
         "defective": defective,
         "passed":    passed,
         "pass_rate": round(passed / total * 100, 1) if total else 0,
-        "accuracy":  round(acc[0]["avg"], 1) if acc else 0.0,
+        "accuracy":  avg_acc,
     })
 
 
