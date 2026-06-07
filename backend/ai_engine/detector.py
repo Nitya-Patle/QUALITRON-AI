@@ -123,7 +123,7 @@ class DefectDetector:
 
     def _run_gemini_vision(self, image_bytes: bytes, api_key: str) -> list:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         
         prompt = """
         You are an industrial quality control inspector.
