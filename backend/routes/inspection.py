@@ -51,7 +51,7 @@ def upload():
     barcode = decode_barcode(img_bytes)
 
     # Run AI inspection
-    result = detector.inspect_image(img_bytes)
+    result = detector.inspect_image(img_bytes, use_cloud=True)
     result["accuracy"] = max(70.0, round(100 - len(result["defects"]) * 4.5, 1))
 
     # Save to DB

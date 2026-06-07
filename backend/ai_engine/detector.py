@@ -8,9 +8,11 @@ import numpy as np
 import time
 import base64
 import io
+import json
 import os
 import gc
 from PIL import Image
+import google.generativeai as genai
 
 MODEL_PATH = "backend/yolov8n.onnx" if os.path.exists("backend/yolov8n.onnx") else "yolov8n.onnx"
 
@@ -42,19 +44,31 @@ class DefectDetector:
         except Exception as e:
             print(f"[AI] Model load error: {e}")
 
-    def inspect_image(self, image_bytes: bytes) -> dict:
+    def inspect_image(self, image_bytes: bytes, use_cloud: bool = False) -> dict:
         start     = time.time()
         img_array = self._bytes_to_array(image_bytes)
         gc.collect() # Force memory cleanup
         
         objects = []
-        if self.net is not None:
-            objects = self._run_yolo_onnx(img_array)
-            defects = self._analyze_defects(img_array, objects)
-            model_name = "YOLOv8n (ONNX)"
-        else:
-            defects = self._image_quality_check(img_array, None)
-            model_name = "CV2 Analytics"
+        defects = []
+        
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if use_cloud and api_key:
+            try:
+                defects = self._run_gemini_vision(image_bytes, api_key)
+                model_name = "Gemini 1.5 Flash (Cloud VLM)"
+            except Exception as e:
+                print(f"[AI] Gemini API failed: {e}. Falling back to Edge AI.")
+                use_cloud = False
+                
+        if not (use_cloud and api_key):
+            if self.net is not None:
+                objects = self._run_yolo_onnx(img_array)
+                defects = self._analyze_defects(img_array, objects)
+                model_name = "YOLOv8n (ONNX Edge)"
+            else:
+                defects = self._image_quality_check(img_array, None)
+                model_name = "CV2 Analytics"
 
         elapsed   = round(time.time() - start, 3)
         annotated = self._annotate(img_array.copy(), objects, defects)
@@ -104,6 +118,38 @@ class DefectDetector:
                     "conf": scores[i]
                 })
         return results
+
+    def _run_gemini_vision(self, image_bytes: bytes, api_key: str) -> list:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        prompt = """
+        You are an industrial quality control inspector.
+        Analyze this image for manufacturing defects such as cracks, scratches, discoloration, stains, dents, or burrs.
+        If the object is clean, normal, and passes quality control, return an empty array [].
+        If there are defects, return a JSON array of objects with the following keys:
+        - "type": (e.g. "scratch", "crack", "stain", "discoloration")
+        - "severity": (e.g. "Low", "Medium", "High", "Critical")
+        - "confidence": (a float between 0.80 and 0.99)
+        Respond ONLY with the JSON array, nothing else. No markdown wrappers.
+        """
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        # Ensure it's not too huge for API
+        image.thumbnail((1024, 1024))
+        
+        response = model.generate_content([prompt, image])
+        text = response.text.strip()
+        
+        # Clean up possible markdown code blocks
+        if text.startswith("```json"): text = text[7:]
+        if text.startswith("```"): text = text[3:]
+        if text.endswith("```"): text = text[:-3]
+        
+        try:
+            return json.loads(text.strip())
+        except Exception as e:
+            print(f"[AI] Gemini JSON parsing failed: {e}. Raw text: {text}")
+            return []
 
     def _analyze_defects(self, img, objects) -> list:
         defects = []
