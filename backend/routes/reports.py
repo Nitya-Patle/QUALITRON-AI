@@ -42,7 +42,7 @@ def pdf():
     buf  = io.BytesIO()
     doc  = SimpleDocTemplate(buf, pagesize=A4,
                               topMargin=2*cm, bottomMargin=2*cm,
-                              leftMargin=2*cm, rightMargin=2*cm)
+                              leftMargin=1.5*cm, rightMargin=1.5*cm)
     styles = getSampleStyleSheet()
     story  = []
 
@@ -96,7 +96,7 @@ def pdf():
             r["timestamp"].strftime("%d/%m/%y %H:%M"),
         ])
     rec_t = Table(rows, repeatRows=1,
-                  colWidths=[3*cm, 3.5*cm, 2.5*cm, 2*cm, 2*cm, 2.5*cm, 3*cm])
+                  colWidths=[2.5*cm, 3.0*cm, 4.5*cm, 1.5*cm, 1.5*cm, 2.0*cm, 3.0*cm])
     rec_t.setStyle(TableStyle([
         ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#0f1628")),
         ("TEXTCOLOR",  (0,0), (-1,0), colors.HexColor("#00D4FF")),
