@@ -123,3 +123,13 @@ def predictive():
             else "Optimal condition — no action needed"
         )
     return jsonify(machines)
+
+
+@dashboard_bp.route("/reset", methods=["DELETE"])
+@jwt_required()
+def reset_system():
+    db = get_db()
+    operator = get_jwt_identity()
+    db.inspections.delete_many({"operator": operator})
+    db.alerts.delete_many({"operator": operator})
+    return jsonify({"msg": "System has been factory reset."})

@@ -41,6 +41,7 @@ export const dashboardAPI = {
   hourly:     () => fetch(`${BASE}/dashboard/hourly`,     {headers:hdr()}).then(handle),
   defectDist: () => fetch(`${BASE}/dashboard/defect-dist`,{headers:hdr()}).then(handle),
   predictive: () => fetch(`${BASE}/dashboard/predictive`, {headers:hdr()}).then(handle),
+  resetSystem:() => fetch(`${BASE}/dashboard/reset`,      {method:"DELETE",headers:hdr()}).then(handle),
 };
 
 export const cameraAPI = {

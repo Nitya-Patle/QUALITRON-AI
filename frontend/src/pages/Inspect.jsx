@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { C } from "../theme";
 import { inspectAPI } from "../utils/api";
+import { playBeep } from "../utils/audio";
 import SectionTitle from "../components/SectionTitle";
 
 const SEV_COLOR = {Low:C.yellow,Medium:"#ff6b35",High:C.red,Critical:"#ff0040"};
@@ -32,7 +33,10 @@ export default function Inspect({ refreshAlerts }) {
     try {
       const res = await inspectAPI.upload(imageFile, product);
       setResult(res);
-      if (!res.passed && refreshAlerts) refreshAlerts();
+      if (!res.passed) {
+        playBeep();
+        if (refreshAlerts) refreshAlerts();
+      }
     } catch(e) { setError(e.message); }
     setLoading(false);
   };

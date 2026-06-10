@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { C } from "../theme";
-import { inspectAPI } from "../utils/api";
+import { inspectAPI, reportsAPI } from "../utils/api";
 import SectionTitle from "../components/SectionTitle";
 
 const PRODS=["Gear Shaft","Bearing Ring","Valve Body","Turbine Blade","PCB Module"];
@@ -55,6 +55,14 @@ export default function Records() {
         <div style={{padding:"10px 16px",borderRadius:10,background:`${C.card}`,border:`1px solid ${C.border}`,color:`${C.muted}`,fontSize:13}}>
           {filtered.length} records
         </div>
+        <button onClick={() => window.open(reportsAPI.pdfUrl(7), "_blank")}
+          style={{padding:"10px 16px",borderRadius:10,background:`linear-gradient(135deg, ${C.red}, #ff4040)`,border:"none",color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer",boxShadow:"0 4px 10px rgba(255,0,0,0.3)"}}>
+          📄 PDF
+        </button>
+        <button onClick={() => window.open(reportsAPI.excelUrl(7), "_blank")}
+          style={{padding:"10px 16px",borderRadius:10,background:`linear-gradient(135deg, ${C.green}, #00aa55)`,border:"none",color:"#000",fontWeight:800,fontSize:13,cursor:"pointer",boxShadow:"0 4px 10px rgba(0,255,0,0.2)"}}>
+          📊 EXCEL
+        </button>
       </div>
 
       <div style={{background:`${C.card}`,borderRadius:16,padding:20,border:`1px solid ${C.border}`,overflowX:"auto"}}>

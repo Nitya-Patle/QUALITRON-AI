@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { C } from "../theme";
 import { useAuth } from "../App";
+import { dashboardAPI } from "../utils/api";
 import SectionTitle from "../components/SectionTitle";
 
 export default function Settings() {
@@ -87,11 +88,26 @@ export default function Settings() {
             </div>
           ))}
         </div>
-        <button onClick={save} style={{marginTop:16,padding:"12px 28px",borderRadius:10,
-          border:"none",background:`linear-gradient(135deg,${C.accent},#7c3aed)`,
-          color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer"}}>
-          {saved?"✅ Saved!":"💾 Save Settings"}
-        </button>
+        <div style={{display:"flex",gap:16,marginTop:16}}>
+          <button onClick={save} style={{flex:1,padding:"12px 28px",borderRadius:10,
+            border:"none",background:`linear-gradient(135deg,${C.accent},#7c3aed)`,
+            color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer"}}>
+            {saved?"✅ Saved!":"💾 Save Settings"}
+          </button>
+          <button onClick={async () => {
+            if(window.confirm("WARNING: This will permanently delete ALL inspection records and alerts. Are you sure you want to factory reset?")) {
+              try {
+                await dashboardAPI.resetSystem();
+                alert("System has been factory reset. All test data wiped.");
+                window.location.reload();
+              } catch(e) { alert("Failed to reset: " + e.message); }
+            }
+          }} style={{padding:"12px 28px",borderRadius:10,
+            border:`1px solid ${C.red}`,background:`${C.red}15`,
+            color:C.red,fontWeight:800,fontSize:14,cursor:"pointer"}}>
+            🧹 Wipe Database
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { C } from "../theme";
 import { cameraAPI, inspectAPI } from "../utils/api";
+import { playBeep } from "../utils/audio";
 import SectionTitle from "../components/SectionTitle";
 
 export default function Camera({ refreshAlerts }) {
@@ -47,9 +48,11 @@ export default function Camera({ refreshAlerts }) {
           }
           
           if (res.defects) {
-            setPassStatus(res.defects.length === 0 ? "PASS" : "FAIL");
+            const isFail = res.defects.length > 0;
+            setPassStatus(isFail ? "FAIL" : "PASS");
             
-            if (res.defects.length > 0) {
+            if (isFail) {
+              playBeep();
               setDets(prev => {
                 const newDets = res.defects.map(d => ({
                   id: Date.now() + Math.random(),
