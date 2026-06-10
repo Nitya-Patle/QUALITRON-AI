@@ -176,10 +176,12 @@ npm run dev
 ---
 
 ## 🔮 Future Roadmap
-- [ ] **IoT Sensor Fusion:** Integrate temperature and vibration sensors to cross-reference with visual defects.
-- [ ] **Multi-Camera Sync:** Support for 4 simultaneous camera angles for 3D item inspection.
-- [ ] **Real-time SMS/WhatsApp:** Move notification toggles from mockup state to active Twilio integration.
-- [ ] **Automated Retraining:** Pipeline to automatically push falsely classified images back to Ultralytics HUB for model fine-tuning.
+- [ ] **Real-time SMS/WhatsApp Integration:** Move notification toggles from mockup state to active Twilio/SendGrid integration for instant manager alerts.
+- [ ] **Multi-Camera 3D Sync:** Support for 4 simultaneous camera angles (Top, Left, Right, Bottom) for comprehensive 360° item inspection.
+- [ ] **Advanced Authentication System:** Proper login portals with distinct dashboards for Factory Floor Employees vs. Quality Engineers.
+- [ ] **Voice Command Assistant:** Integrate a microphone feature allowing hands-free operation (e.g., "Qualitron, show critical alerts", "Generate today's PDF").
+- [ ] **Dynamic Theme Toggling:** Add user preferences for switching between the current Dark Mode and a bright Light Mode UI.
+- [ ] **Automated Retraining Pipeline:** Automatically push falsely classified images back to Ultralytics HUB to continuously fine-tune the YOLOv8 model.
 
 ---
 
