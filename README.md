@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Nitya-Patle/QUALITRON-AI/main/frontend/public/vite.svg" width="100" height="100" alt="Qualitron AI Logo"/>
   
   <h1>🏭 QUALITRON AI — Enterprise Quality Control</h1>
   
@@ -76,9 +75,9 @@ graph TD
     B -->|Periodic Base64 Frames| C{Flask API Gateway}:::backend
     
     C -->|Image Data| D[Gemini 1.5 Flash API]:::ai
-    D -- "Success (200 OK)" --> F((Result Aggregator)):::backend
-    D -. "Rate Limit (429 Error)" .-> E[Local YOLOv8 Model]:::ai
-    E --> F
+    D -->|Success 200 OK| F((Result Aggregator)):::backend
+    D -->|Rate Limit 429 Error| E[Local YOLOv8 Model]:::ai
+    E -->|Detection Result| F
     
     F -->|Log PASS / FAIL| G[(MongoDB Cluster)]:::database
     F -->|Trigger Alert| H[Notification & Audio Engine]:::frontend
