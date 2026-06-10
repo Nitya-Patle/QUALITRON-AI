@@ -63,4 +63,6 @@ export const alertsAPI = {
 export const reportsAPI = {
   pdfUrl:   (days=7) => `${BASE}/reports/pdf?days=${days}`,
   excelUrl: (days=7) => `${BASE}/reports/excel?days=${days}`,
+  downloadPdf: (days=7) => fetch(`${BASE}/reports/pdf?days=${days}`, {headers:hdr()}).then(r => r.blob()),
+  downloadExcel: (days=7) => fetch(`${BASE}/reports/excel?days=${days}`, {headers:hdr()}).then(r => r.blob()),
 };

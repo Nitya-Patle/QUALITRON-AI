@@ -39,6 +39,18 @@ export default function Records() {
     setRecords(prev=>prev.filter(r=>r._id!==id));
   };
 
+  const handleDownload = async (type) => {
+    try {
+      const blob = type === 'pdf' ? await reportsAPI.downloadPdf(7) : await reportsAPI.downloadExcel(7);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `qualitron_report_${Date.now()}.${type === 'pdf' ? 'pdf' : 'xlsx'}`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch(e) { alert("Download failed. Please ensure you have data and are logged in."); }
+  };
+
   return (
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
@@ -55,11 +67,11 @@ export default function Records() {
         <div style={{padding:"10px 16px",borderRadius:10,background:`${C.card}`,border:`1px solid ${C.border}`,color:`${C.muted}`,fontSize:13}}>
           {filtered.length} records
         </div>
-        <button onClick={() => window.open(reportsAPI.pdfUrl(7), "_blank")}
+        <button onClick={() => handleDownload('pdf')}
           style={{padding:"10px 16px",borderRadius:10,background:`linear-gradient(135deg, ${C.red}, #ff4040)`,border:"none",color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer",boxShadow:"0 4px 10px rgba(255,0,0,0.3)"}}>
           📄 PDF
         </button>
-        <button onClick={() => window.open(reportsAPI.excelUrl(7), "_blank")}
+        <button onClick={() => handleDownload('excel')}
           style={{padding:"10px 16px",borderRadius:10,background:`linear-gradient(135deg, ${C.green}, #00aa55)`,border:"none",color:"#000",fontWeight:800,fontSize:13,cursor:"pointer",boxShadow:"0 4px 10px rgba(0,255,0,0.2)"}}>
           📊 EXCEL
         </button>
