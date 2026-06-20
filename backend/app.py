@@ -3,7 +3,7 @@ QUALITRON AI — Main Flask Application
 Run: python app.py
 """
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
