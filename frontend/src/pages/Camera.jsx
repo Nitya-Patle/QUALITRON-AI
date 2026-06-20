@@ -109,7 +109,10 @@ export default function Camera({ refreshAlerts }) {
     
     // Save the last frame to the database!
     if (lastFrameRef.current) {
-      fetch(lastFrameRef.current)
+      const frameToSave = lastFrameRef.current;
+      lastFrameRef.current = null; // Clear it to prevent duplicate uploads on component unmount
+      
+      fetch(frameToSave)
         .then(res => res.blob())
         .then(blob => {
           const file = new File([blob], `live_snapshot_${Date.now()}.jpg`, { type: "image/jpeg" });
